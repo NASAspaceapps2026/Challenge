@@ -33,6 +33,8 @@ No need to read the whole plan first. Find your name below, do that task (full d
 
 Everyone: exact file formats are law — see [CONTRACTS.md](CONTRACTS.md) before writing any CSV/JSON.
 
+**Decision (2026-11-14): GEE exports run through the Python API, not the web Code Editor.** Both Vinicius (TA.1 NDVI) and Leo (TA.3 slope) write/run `.py` scripts locally instead of pasting into code.earthengine.google.com — see `engine/gee_ndvi_export.py` as the template: it reads `data/fields.geojson` directly and saves the CSV straight to `data/`, no manual Drive download. One-time setup per machine: `pip install earthengine-api pandas`, run `earthengine authenticate` once, and have a Google Cloud project with the Earth Engine API enabled. The computation still runs on Google's servers either way — only where you write/trigger the script changes. A `.js` version of the NDVI export is kept in the repo as a fallback only, in case the API setup breaks mid-event.
+
 ## Task tracker (check off as you go)
 
 Owners for later phases are intentionally left as **TBD** — assign when that phase starts, based on who's free.
