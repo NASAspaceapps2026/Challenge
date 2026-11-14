@@ -51,6 +51,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - **Goal:** 5–10 real fields in Sorriso/Lucas do Rio Verde.
 - **How:** open GEE or Google Maps satellite view over the region; draw polygons for large fields (>100 ha) that plant soybean every year (check previous years' imagery), without a pivot irrigation system (a pivot shows up as a circle). Vary them: some early planting, some late; some with visible second crop, some without. Save as `fields.geojson`.
 - **Done when:** `fields.geojson` is in the repo with 5–10 named polygons (`T1`, `T2`, ...).
+- **Done (2026-11-14):** 7 fields selected near Sorriso, MT (see `engine/gee_field_scouting.js` for the GEE scouting script). All >100ha, confirmed rainfed (checked dry-season composite + NDVI history, no field stays green in Jun-Sep). Note: they ended up clustered within ~5km (well under the 20-30km budget) and their NDVI curves are highly synchronized across years — the intended early/late-planting and safrinha/no-safrinha variety isn't clearly visible in this batch. If adding more fields (T8-T10) later, spread them further across the allowed radius to get real variety.
 
 ---
 
