@@ -59,7 +59,7 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 ### `data/success_table.csv`
 - **Produced by:** TC.2 — **Consumed by:** TD.3
 - **Columns:** `crop, sowing_date, scenario, success_prob`
-- **Notes:** `scenario` ∈ `{nino, nina, neutral}`. `success_prob` ∈ `[0, 1]`.
+- **Notes:** `scenario` ∈ `{all, nino, nina, neutral}` (`all` = every historical year — the frontend's default before the farmer picks an ENSO filter). `success_prob` ∈ `[0, 1]`. `sowing_date` uses year **2026** (the decision season), Jan 1 → Mar 27 in 5-day steps.
 
 ### `data/bare_soil_<field_id>.csv`
 - **Produced by:** TC.3 — **Consumed by:** TD.3

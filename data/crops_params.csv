@@ -1,0 +1,6 @@
+crop,cycle_days,kc_establishment,kc_vegetative,kc_flowering,kc_filling,drought_sensitivity,zarc_window_start,zarc_window_end
+corn,120,0.40,0.80,1.20,0.80,0.90,2026-01-01,2026-02-20
+sorghum,110,0.35,0.75,1.00,0.75,0.60,2026-01-01,2026-03-10
+millet,90,0.35,0.70,0.95,0.70,0.45,2026-01-01,2026-03-20
+brachiaria,120,0.40,0.75,0.90,0.85,0.35,2026-01-01,2026-03-31
+crotalaria,100,0.35,0.70,0.90,0.70,0.30,2026-01-01,2026-03-31
