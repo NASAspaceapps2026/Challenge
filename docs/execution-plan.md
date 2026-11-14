@@ -206,6 +206,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 
 ## OPTIONAL (only if everything above is done)
 - **"Draw your farm" backend:** FastAPI with an `analyze_field(geojson)` endpoint that runs the same pipeline in fast mode (MODIS + POWER only), deployed on Hugging Face Spaces or Render. The demo never depends on it.
+- **Literature-backed pitch polish:** cite *Agricultura Digital* (Embrapa, 2020) findings in the pitch/slides — e.g. existing Embrapa tools (ZARC Plantio Certo, SatVeg, Agritempo) as prior art we build on, and the ~4.5% climate-driven soybean yield drop (Iizumi & Ramankutty 2016) to back the water-risk axis. See [team-guide.md §9](team-guide.md#9-supporting-literature). Pure copywriting, no new pipeline — only do this after everything above is done.
 
 ## Cut order (if we fall behind)
 backend → IMEA validation → El Niño filter → fewer fields. **Never cut the strategy cards.**

@@ -95,7 +95,17 @@ Strategy cards, scoring and farmer controls → all demo fields → deploy to Gi
 
 **If we fall behind, cut in this order:** backend → IMEA validation → El Niño filter → fewer fields. **Never cut the strategy cards with the soil-health content — they are the challenge.**
 
-## 9. Glossary
+## 9. Supporting literature
+
+Notes from *Agricultura Digital* (Embrapa, 2020) relevant to our approach:
+
+- **Prior art to position against:** Embrapa already has short-term decision tools — WebAgritec, Zarc Plantio Certo, SatVeg, Agritempo — and a medium/long-term simulator, ScenAgri, still under development. Useful to cite in the pitch as "existing tools do X; we add the succession-strategy comparison on top."
+- **NDVI alone isn't enough:** different stress types (water, pest, disease) can produce similar NDVI signals; the trend in the literature is to combine imagery with weather, management history, and soil data. We already do this (water balance + pest table + slope), but it's worth stating explicitly in the pitch as a known limitation we've addressed.
+- **Quantified climate risk on soybean:** Iizumi & Ramankutty (2016), cited in the book, attribute to climate change an average soybean yield drop of ~4.5% globally over 1981–2010 (vs. ~4.1% maize, ~1.8% wheat). Usable as a citation backing the "water risk" axis.
+- **Disease-risk signal:** rainfall/humidity/leaf-wetness data can estimate disease incidence probability — supports the pest/disease-cycle axis of our scoring, beyond just nematodes/leafhopper.
+- Nothing in the book gave concrete corn/brachiaria/sorghum/crotalaria rotation parameters or water-balance formulas we could plug in directly — our scoring logic still needs to come from Embrapa/ZARC agronomic references as already planned.
+
+## 10. Glossary
 
 - **NDVI** — Normalized Difference Vegetation Index; satellite measure of green vegetation (0 = bare soil, ~0.9 = dense healthy crop).
 - **Safrinha** — Brazil's second crop, planted right after soybean harvest in the same season.
