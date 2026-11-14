@@ -65,6 +65,7 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 ### `data/bare_soil_<field_id>.csv`
 - **Produced by:** TC.3 — **Consumed by:** TD.3
 - **Columns:** `strategy, year, bare_days`
+- **Notes:** `strategy` ∈ `{current_corn, corn_brachiaria, sorghum_millet, cover_crotalaria}` — these ids are canonical and must match the `id` field in `web/data/strategies.json` (TD.2). Observed years 2019–2026; only `current_corn` is directly observed, the others are rule-based estimates (see `engine/bare_soil.py`).
 
 ---
 

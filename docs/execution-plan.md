@@ -52,7 +52,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [ ] TB.3 — Predict the 2025/26 harvest — **Vinicius**
 - [x] TC.1 — Parameterize candidate crops — done (Leo took over; `data/crops_params.csv`, provisional literature values — see `docs/crops-params-notes.md`, needs agronomy review)
 - [x] TC.2 — Run the historical water balance — done (Leo; `engine/water_balance.py` -> `data/success_table.csv`, sanity checks pass)
-- [ ] TC.3 — Bare-soil risk — **Leo**
+- [x] TC.3 — Bare-soil risk — done (Leo; `engine/bare_soil.py` -> `data/bare_soil_T*.csv`, ~100-110 observed bare days/yr)
 - [ ] TD.1 — Pest table — **Leo**
 - [ ] TD.2 — Write the 4+ strategy cards — **Vinicius**
 - [ ] TD.3 — Scoring function — **Leo**
