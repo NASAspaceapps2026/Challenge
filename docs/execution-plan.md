@@ -55,10 +55,10 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TC.3 — Bare-soil risk — done (Leo; `engine/bare_soil.py` -> `data/bare_soil_T*.csv`, ~100-110 observed bare days/yr)
 - [x] TD.1 — Pest table — done (Leo; `data/pests.csv`, sources in `docs/pests-notes.md`)
 - [ ] TD.2 — Write the 4+ strategy cards — **Vinicius**
-- [ ] TD.3 — Scoring function — **Leo**
+- [x] TD.3 — Scoring function — done (Leo; `web/js/scoring.js`, pure client-side JS)
 - [ ] TE.1 — Page skeleton — **Zé**
-- [ ] TE.2 — Connect real data — **Zé**
-- [ ] TE.3 — Interactivity — **Leo** (coordinate with Zé, it's in `web/`)
+- [x] TE.2 — Connect real data — done (Leo; `engine/export_web_data.py` -> `web/data/*.json`, site fetches real data)
+- [x] TE.3 — Interactivity — done (Leo; slip slider, ENSO filter, weight sliders, constraint/pest checkboxes all live)
 - [ ] TE.4 — All fields + polish — **Vinicius** (coordinate with Zé, it's in `web/`)
 - [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
 - [ ] TF.2 — Deploy — **Vinicius**
