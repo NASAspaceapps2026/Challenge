@@ -8,7 +8,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 
 - [ ] T0.1 — Accounts and access — *everyone*
 - [x] T0.2 — Repository and data contracts — done
-- [ ] T0.3 — Choose the demo fields — **Vinicius**
+- [x] T0.3 — Choose the demo fields — done (7 fields, see `data/fields.geojson`)
 - [ ] TA.1 — Export NDVI series — **Vinicius**
 - [ ] TA.2 — Download historical climate — **Leo**
 - [ ] TA.3 — Slope per field — **Leo**
