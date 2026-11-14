@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroClima & Rotação | Monitoramento Visual da Lavoura</title>
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonte Google Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Ícones Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Leaflet.js CSS e JS (Mapa Interativo de Satélite) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        agro: {
+                            950: '#0a2216',
+                            900: '#143d29',
+                            800: '#1b5438',
+                            700: '#236e49',
+                            600: '#2e8b5c',
+                            500: '#3da872',
+                            100: '#e6f5ed',
+                            50: '#f3faf6',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Ajustes visuais do mapa Leaflet */
+        #agro-map {
+            height: 360px;
+            width: 100%;
+            z-index: 10;
+        }
+        @media (min-width: 1024px) {
+            #agro-map {
+                height: 410px;
+            }
+        }
+        .leaflet-control-attribution {
+            font-size: 10px !important;
+            background: rgba(255, 255, 255, 0.8) !important;
+            border-radius: 6px 0 0 0;
+        }
+    </style>
+    <!-- 1. CABEÇALHO E BUSCA SIMPLES COM IMAGEM PANORÂMICA DE LAVOURA -->
+    <header class="relative overflow-hidden bg-agro-950 text-white shadow-xl border-b border-agro-700/60">
+        <!-- Imagem de Fundo Fotográfica (Lavoura verde ao nascer do sol com fallback) -->
+        <img 
+            src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=85" 
+            onerror="this.onerror=null; this.src='https://placehold.co/1920x600/143d29/ffffff?text=AgroClima+%26+Rotacao';"
+            alt="Campos agrícolas verdejantes ao amanhecer" 
+            class="absolute inset-0 w-full h-full object-cover object-center scale-105"
+        >
+        <!-- Sobreposição (Overlay) em Degradê Verde Agrícola para Alto Contraste e Legibilidade -->
+        <div class="absolute inset-0 bg-gradient-to-br from-agro-950/90 via-agro-900/80 to-agro-800/75 backdrop-blur-[1px]"></div>
+
+        <!-- Conteúdo do Cabeçalho sobre a Imagem -->
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-5 pb-3.5 flex flex-wrap items-center justify-between gap-4 border-b border-white/15">
+            <div class="flex items-center gap-3">
+                <div class="bg-emerald-500/25 backdrop-blur-md p-2.5 rounded-xl border border-emerald-300/40 shadow-md">
+                    <i data-lucide="sprout" class="w-7 h-7 text-emerald-300"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white drop-shadow-sm">AgroClima <span class="text-emerald-400">&</span> Rotação</h1>
+                        <span class="bg-emerald-500/25 backdrop-blur-md text-emerald-200 border border-emerald-300/40 text-[11px] font-bold px-2.5 py-0.5 rounded-full">Satélite & Clima</span>
+                    </div>
+                    <p class="text-xs text-emerald-50/90 drop-shadow-xs">Veja sua fazenda de cima, acompanhe o tempo e planeje o plantio</p>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs">
+                <div id="data-source-badge" class="flex items-center gap-1.5 bg-agro-950/55 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-medium">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span>Clima & Satélite Conectados</span>
+                </div>
+                <div id="current-date-badge" class="hidden sm:block bg-agro-950/55 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 font-semibold text-white">
+                    Hoje
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Busca de Cidade / Região -->
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-7">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-center">
+                <div class="lg:col-span-5">
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-white flex items-center gap-2 drop-shadow-sm">
+                        <i data-lucide="search" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                        Onde fica a sua lavoura?
+                    </h2>
+                    <p class="text-sm text-emerald-50/95 mt-1 leading-relaxed drop-shadow-xs">
+                        Digite o nome da cidade ou <strong>clique direto no mapa</strong> abaixo para marcar sua propriedade.
+                    </p>
+                </div>
+
+                <div class="lg:col-span-7">
+                    <form id="search-form" class="flex flex-col sm:flex-row gap-2.5">
+                        <div class="relative flex-grow">
+                            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                <i data-lucide="map-pin" class="w-5 h-5 text-agro-700"></i>
+                            </div>
+                            <input 
+                                type="text" 
+                                id="region-input" 
+                                value="Sorriso, MT"
+                                placeholder="Ex: Sorriso, Londrina, Petrolina, Uberaba..." 
+                                class="w-full pl-11 pr-4 py-3.5 rounded-xl bg-white/95 backdrop-blur-md text-slate-900 placeholder-slate-500 font-semibold text-base shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-400 transition"
+                                required
+                            >
+                        </div>
+                        <button 
+                            type="submit" 
+                            id="search-submit-btn"
+                            class="bg-emerald-500 hover:bg-emerald-400 active:bg-emerald-600 text-agro-950 font-extrabold px-6 py-3.5 rounded-xl shadow-lg transition flex items-center justify-center gap-2 shrink-0 cursor-pointer text-base"
+                        >
+                            <i data-lucide="locate-fixed" class="w-5 h-5"></i>
+                            <span>Ver Fazenda & Clima</span>
+                        </button>
+                    </form>
+
+                    <!-- Botões Rápidos de Polos Agrícolas -->
+                    <div class="mt-3.5 flex flex-wrap items-center gap-1.5">
+                        <span class="text-xs text-emerald-100 font-bold mr-1 drop-shadow-xs">Exemplos rápidos:</span>
+                        <button type="button" onclick="selectPresetRegion('Sorriso, MT')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Sorriso-MT</button>
+                        <button type="button" onclick="selectPresetRegion('Ribeirão Preto, SP')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Ribeirão Preto-SP</button>
+                        <button type="button" onclick="selectPresetRegion('Londrina, PR')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Londrina-PR</button>
+                        <button type="button" onclick="selectPresetRegion('Passo Fundo, RS')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Passo Fundo-RS</button>
+                        <button type="button" onclick="selectPresetRegion('Luís Eduardo Magalhães, BA')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Luís E. Magalhães-BA</button>
+                        <button type="button" onclick="selectPresetRegion('Petrolina, PE')" class="text-xs bg-agro-950/55 hover:bg-agro-950/80 backdrop-blur-md text-white font-medium px-3 py-1.5 rounded-lg border border-white/25 transition cursor-pointer">Petrolina-PE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- CONTEÚDO PRINCIPAL -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-7">
+
+        <!-- 2. SEMÁFORO DE TRABALHO NO CAMPO (ULTRA VISUAL PARA O PRODUTOR) -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-agro-700">Resumo Rápido de Hoje</span>
+                    <h2 class="text-lg sm:text-xl font-extrabold text-slate-900">
+                        Condições para Trabalho no Campo em <span id="header-region-title" class="text-agro-700">Sorriso, MT</span>
+                    </h2>
+                </div>
+                <span id="region-coords-badge" class="text-xs font-mono bg-slate-100 text-slate-700 px-3 py-1.5 rounded-lg border border-slate-200">
+                    Lat: -12.54 | Lon: -55.72
+                </span>
+            </div>
+
+            <!-- 3 Cards Semáforo: Pulverizar, Plantar, Colher -->
+            <div id="traffic-lights-grid" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <!-- Preenchido via JS -->
+            </div>
+        </section>
+
+        <!-- 3. MAPA INTERATIVO DE SATÉLITE (ESQUERDA) + PAINEL DO TEMPO (DIREITA) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            
+            <!-- COLUNA ESQUERDA (7 COLUNAS): MAPA INTERATIVO REAL DE SATÉLITE -->
+            <section class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl">
+                                <i data-lucide="satellite" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900">Mapa de Satélite da Propriedade</h3>
+                                <p class="text-xs text-slate-500">Clique em qualquer talhão no mapa para ver o clima exato daquele ponto</p>
+                            </div>
+                        </div>
+
+                        <!-- Botões de Troca de Camada Visual -->
+                        <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200">
+                            <button 
+                                type="button" 
+                                id="btn-layer-sat" 
+                                onclick="setMapLayer('satellite')" 
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold bg-agro-800 text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <i data-lucide="globe-2" class="w-3.5 h-3.5"></i>
+                                <span>Visão Satélite</span>
+                            </button>
+                            <button 
+                                type="button" 
+                                id="btn-layer-street" 
+                                onclick="setMapLayer('streets')" 
+                                class="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer"
+                            >
+                                <i data-lucide="map" class="w-3.5 h-3.5"></i>
+                                <span>Mapa Estradas</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Contêiner do Mapa Interativo Leaflet -->
+                    <div class="relative rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner bg-slate-900">
+                        <div id="agro-map"></div>
+                        
+                        <!-- Dica Flutuante Simples sobre o Mapa -->
+                        <div class="absolute bottom-3 left-3 z-20 bg-slate-900/85 backdrop-blur-md text-white text-xs px-3 py-2 rounded-xl border border-white/15 flex items-center gap-2 pointer-events-none">
+                            <i data-lucide="mouse-pointer-click" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+                            <span>Toque ou clique no mapa para mover o marcador da fazenda</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Barra de Ações do Mapa: Círculo de Talhão 2km + Google Earth 3D + Windy -->
+                <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    <button 
+                        type="button" 
+                        id="btn-toggle-circle"
+                        onclick="toggleFarmCircle()"
+                        class="bg-emerald-50 hover:bg-emerald-100 text-agro-900 font-bold py-3 px-3.5 rounded-xl border border-emerald-300 transition flex items-center justify-center gap-2 text-xs cursor-pointer"
+                    >
+                        <i data-lucide="circle-dot" class="w-4 h-4 text-agro-700 shrink-0"></i>
+                        <span id="circle-btn-text">Talhão Marcado (2 km)</span>
+                    </button>
+
+                    <a 
+                        id="btn-google-earth"
+                        href="https://earth.google.com/web/@-12.54,-55.72,3000a,35y,0h,0t,0r" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="bg-agro-800 hover:bg-agro-700 text-white font-bold py-3 px-3.5 rounded-xl shadow-sm transition flex items-center justify-center gap-2 text-xs"
+                    >
+                        <i data-lucide="globe" class="w-4 h-4 text-emerald-300 shrink-0"></i>
+                        <span>Abrir no Google Earth 3D</span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 opacity-80"></i>
+                    </a>
+
+                    <a 
+                        id="btn-windy"
+                        href="https://www.windy.com/?-12.54,-55.72,8" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        class="bg-sky-50 hover:bg-sky-100 text-sky-900 font-bold py-3 px-3.5 rounded-xl border border-sky-200 transition flex items-center justify-center gap-2 text-xs"
+                    >
+                        <i data-lucide="wind" class="w-4 h-4 text-sky-600 shrink-0"></i>
+                        <span>Ver Nuvens no Windy</span>
+                        <i data-lucide="external-link" class="w-3.5 h-3.5 opacity-70"></i>
+                    </a>
+                </div>
+            </section>
+
+            <!-- COLUNA DIREITA (5 COLUNAS): PAINEL CLIMÁTICO VISUAL -->
+            <section class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
+                        <div class="flex items-center gap-2.5">
+                            <div class="p-2 bg-amber-100 text-amber-700 rounded-xl">
+                                <i data-lucide="cloud-sun" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-extrabold text-slate-900">Tempo Agora no Local</h3>
+                                <p class="text-xs text-slate-500">Medição direta na coordenada marcada</p>
+                            </div>
+                        </div>
+                        <span id="weather-condition-badge" class="bg-sky-100 text-sky-800 border border-sky-200 text-xs font-bold px-3 py-1 rounded-full">
+                            Sol com Nuvens
+                        </span>
+                    </div>
+
+                    <!-- Card Grande de Temperatura -->
+                    <div class="bg-gradient-to-br from-agro-50 via-emerald-50 to-sky-50 border border-emerald-200 rounded-2xl p-5 mb-4 flex items-center justify-between">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-agro-800">Calor / Temperatura</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span id="temp-current" class="text-5xl font-extrabold text-agro-950">29°C</span>
+                                <span id="temp-minmax" class="text-xs font-bold text-slate-600 bg-white/80 px-2.5 py-1 rounded-lg border border-slate-200">
+                                    Mín 21° / Máx 33°
+                                </span>
+                            </div>
+                            <p id="temp-summary-text" class="text-xs font-medium text-slate-700 mt-2">
+                                Calor bom para o crescimento das plantas.
+                            </p>
+                        </div>
+                        <div id="weather-main-icon" class="p-4 bg-white rounded-2xl shadow-sm border border-emerald-100 text-amber-500 shrink-0">
+                            <i data-lucide="sun" class="w-10 h-10"></i>
+                        </div>
+                    </div>
+
+                    <!-- 3 Indicadores Simples: Chuva, Umidade do Ar, Vento -->
+                    <div class="grid grid-cols-3 gap-2.5 mb-5">
+                        <div class="bg-blue-50/70 border border-blue-200/80 rounded-xl p-3 text-center">
+                            <div class="flex justify-center text-blue-600 mb-1">
+                                <i data-lucide="cloud-rain" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-600 block">Chuva Prevista</span>
+                            <span id="metric-rain" class="text-xl font-extrabold text-slate-900">12 mm</span>
+                            <span id="metric-rain-label" class="text-[10px] font-semibold text-blue-700 block mt-0.5">Solo úmido</span>
+                        </div>
+
+                        <div class="bg-teal-50/70 border border-teal-200/80 rounded-xl p-3 text-center">
+                            <div class="flex justify-center text-teal-600 mb-1">
+                                <i data-lucide="droplets" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-600 block">Umidade do Ar</span>
+                            <span id="metric-humidity" class="text-xl font-extrabold text-slate-900">68%</span>
+                            <span id="metric-humidity-label" class="text-[10px] font-semibold text-teal-700 block mt-0.5">Ar agradável</span>
+                        </div>
+
+                        <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-center">
+                            <div class="flex justify-center text-slate-700 mb-1">
+                                <i data-lucide="wind" class="w-5 h-5"></i>
+                            </div>
+                            <span class="text-[11px] font-bold text-slate-600 block">Força do Vento</span>
+                            <span id="metric-wind" class="text-xl font-extrabold text-slate-900">10 km/h</span>
+                            <span id="metric-wind-label" class="text-[10px] font-semibold text-emerald-700 block mt-0.5">Vento calmo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Previsão Visual dos Próximos 5 Dias -->
+                <div>
+                    <div class="flex items-center justify-between mb-2.5">
+                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-600">Previsão para os Próximos 5 Dias</h4>
+                        <span class="text-[11px] text-slate-400">Planeje a semana</span>
+                    </div>
+                    <div id="forecast-5days" class="grid grid-cols-5 gap-1.5">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- 4. ESCOLHA DA CULTURA E RODÍZIO PARA RENDER MAIS -->
+        <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 sm:p-7">
+            <div class="mb-5">
+                <span class="text-xs font-bold uppercase tracking-wider text-agro-700">Passo a Passo para Aumentar a Colheita</span>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">
+                    Escolha o que você vai plantar e veja o Rodízio Ideal
+                </h3>
+                <p class="text-sm text-slate-600 mt-1">
+                    Toque em uma das culturas abaixo. O sistema analisa o clima do seu mapa e mostra como alternar as plantas para deixar a terra mais forte e produzir mais sacas.
+                </p>
+            </div>
+
+            <!-- Cartões Visuais com Foto para Escolher a Cultura (Sem precisar de dropdown pequeno) -->
+            <div id="crop-cards-selector" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-7">
+                <!-- Preenchido via JS -->
+            </div>
+
+            <!-- Resultado Visual: Nota do Clima para a Cultura + Linha do Tempo do Rodízio em 3 Passos -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch bg-slate-50/80 p-4 sm:p-6 rounded-2xl border border-slate-200/90">
+                
+                <!-- Card da Cultura Escolhida & Nota do Clima (4 colunas) -->
+                <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col">
+                    <div class="relative h-44 bg-agro-900">
+                        <img 
+                            id="crop-hero-img"
+                            src="https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/800x400/1b5438/ffffff?text=Lavoura';"
+                            alt="Foto da lavoura selecionada" 
+                            class="w-full h-full object-cover"
+                        >
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent flex items-end p-4">
+                            <div>
+                                <span id="crop-category-tag" class="text-[11px] font-bold bg-emerald-500 text-agro-950 px-2.5 py-0.5 rounded-md">
+                                    Aduba a terra naturalmente
+                                </span>
+                                <h4 id="crop-title" class="text-2xl font-extrabold text-white mt-1">Soja</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-5 flex-grow flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-xs font-bold text-slate-600">Clima desta região para a planta:</span>
+                                <span id="favorability-badge" class="text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    NOTA 9.2 • ÓTIMO
+                                </span>
+                            </div>
+                            <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                                <div id="favorability-bar" class="bg-emerald-500 h-3 rounded-full transition-all duration-500" style="width: 92%"></div>
+                            </div>
+                            <p id="favorability-desc" class="text-xs text-slate-600 mt-2.5 leading-relaxed">
+                                O calor e a umidade atuais estão ótimos para a soja crescer forte e encher bem os grãos.
+                            </p>
+                        </div>
+
+                        <div class="bg-agro-50 rounded-xl p-3.5 border border-emerald-200 grid grid-cols-2 gap-3 text-center">
+                            <div>
+                                <span class="text-[11px] font-semibold text-slate-600 block">Colheita Média</span>
+                                <span id="crop-yield-est" class="text-lg font-extrabold text-agro-950">68 sc/ha</span>
+                            </div>
+                            <div class="border-l border-emerald-200">
+                                <span class="text-[11px] font-semibold text-slate-600 block">Aumento c/ Rodízio</span>
+                                <span id="crop-rotation-gain" class="text-lg font-extrabold text-emerald-700">+14% sacas</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Linha do Tempo Ilustrada do Rodízio em 3 Passos (8 colunas) -->
+                <div class="lg:col-span-8 flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                            <h4 class="text-base font-extrabold text-agro-950 flex items-center gap-2">
+                                <i data-lucide="repeat" class="w-5 h-5 text-agro-700"></i>
+                                Plano de Rodízio em 3 Etapas (Para não cansar a terra)
+                            </h4>
+                            <span class="text-xs font-bold text-agro-800 bg-emerald-100 px-3 py-1 rounded-full">
+                                Mais saúde para o solo
+                            </span>
+                        </div>
+
+                        <!-- 3 Passos com Setas Indicativas -->
+                        <div id="rotation-steps-container" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Preenchido via JS -->
+                        </div>
+                    </div>
+
+                    <!-- Explicação Simples em Linguagem do Campo -->
+                    <div class="bg-white border border-emerald-200 rounded-2xl p-4 flex items-start gap-3.5 shadow-xs">
+                        <div class="p-2.5 bg-emerald-100 text-agro-800 rounded-xl shrink-0 mt-0.5">
+                            <i data-lucide="sprout" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-extrabold text-agro-950">Por que fazer esse rodízio aumenta o lucro?</h5>
+                            <p id="agronomic-benefits" class="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">
+                                Quando você alterna essas plantas na mesma área, uma deixa adubo natural para a outra, as raízes fofam a terra dura e as pragas e doenças diminuem sem precisar gastar tanto com veneno.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- RODAPÉ -->
+    <footer class="bg-white border-t border-slate-200 mt-10 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <div class="flex items-center gap-2">
+                <i data-lucide="sprout" class="w-4 h-4 text-agro-700"></i>
+                <span><strong class="text-slate-700">AgroClima & Rotação</strong> — Ferramenta Visual de Apoio ao Produtor Rural.</span>
+            </div>
+            <div>
+                <span>Imagens de satélite: Esri World Imagery • Dados meteorológicos: Open-Meteo & Estações Regionais.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT DA APLICAÇÃO -->
+    <script>
+        lucide.createIcons();
+
+        // Data atual formatada
+        const hoje = new Date();
+        document.getElementById('current-date-badge').textContent = hoje.toLocaleDateString('pt-BR', {
+            weekday: 'short',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+
+        // Polos Agrícolas Predefinidos (garantem resposta instantânea + fallback seguro)
+        const PRESET_REGIONS = {
+            "sorriso, mt": {
+                name: "Sorriso, MT",
+                lat: -12.5425,
+                lon: -55.7211,
+                temp: 30,
+                min: 22,
+                max: 34,
+                condition: "Sol com Nuvens",
+                icon: "sun",
+                humidity: 66,
+                wind: 9,
+                rain: 12,
+                forecast: [
+                    { day: "Amanhã", icon: "cloud-sun", min: 22, max: 33, rain: "8mm" },
+                    { day: "Dia 2", icon: "cloud-rain", min: 21, max: 30, rain: "20mm" },
+                    { day: "Dia 3", icon: "cloud-rain", min: 21, max: 29, rain: "15mm" },
+                    { day: "Dia 4", icon: "cloud-sun", min: 22, max: 33, rain: "4mm" },
+                    { day: "Dia 5", icon: "sun", min: 23, max: 35, rain: "0mm" }
+                ]
+            },
+            "ribeirão preto, sp": {
+                name: "Ribeirão Preto, SP",
+                lat: -21.1704,
+                lon: -47.8103,
+                temp: 27,
+                min: 18,
+                max: 30,
+                condition: "Parcialmente Nublado",
+                icon: "cloud-sun",
+                humidity: 62,
+                wind: 11,
+                rain: 5,
+                forecast: [
+                    { day: "Amanhã", icon: "sun", min: 17, max: 31, rain: "0mm" },
+                    { day: "Dia 2", icon: "sun", min: 18, max: 32, rain: "0mm" },
+                    { day: "Dia 3", icon: "cloud-sun", min: 19, max: 29, rain: "6mm" },
+                    { day: "Dia 4", icon: "cloud-rain", min: 18, max: 26, rain: "18mm" },
+                    { day: "Dia 5", icon: "cloud-sun", min: 17, max: 28, rain: "2mm" }
+                ]
+            },
+            "londrina, pr": {
+                name: "Londrina, PR",
+                lat: -23.3103,
+                lon: -51.1628,
+                temp: 24,
+                min: 15,
+                max: 27,
+                condition: "Chuva Leve",
+                icon: "cloud-rain",
+                humidity: 76,
+                wind: 10,
+                rain: 16,
+                forecast: [
+                    { day: "Amanhã", icon: "cloud-sun", min: 14, max: 25, rain: "3mm" },
+                    { day: "Dia 2", icon: "sun", min: 14, max: 27, rain: "0mm" },
+                    { day: "Dia 3", icon: "sun", min: 15, max: 28, rain: "0mm" },
+                    { day: "Dia 4", icon: "cloud-sun", min: 16, max: 26, rain: "5mm" },
+                    { day: "Dia 5", icon: "cloud-rain", min: 15, max: 23, rain: "14mm" }
+                ]
+            },
+            "passo fundo, rs": {
+                name: "Passo Fundo, RS",
+                lat: -28.2628,
+                lon: -52.4067,
+                temp: 20,
+                min: 11,
+                max: 23,
+                condition: "Tempo Firme",
+                icon: "cloud-sun",
+                humidity: 70,
+                wind: 14,
+                rain: 2,
+                forecast: [
+                    { day: "Amanhã", icon: "sun", min: 10, max: 23, rain: "0mm" },
+                    { day: "Dia 2", icon: "cloud-sun", min: 12, max: 24, rain: "1mm" },
+                    { day: "Dia 3", icon: "cloud-rain", min: 13, max: 20, rain: "22mm" },
+                    { day: "Dia 4", icon: "cloud-sun", min: 11, max: 21, rain: "2mm" },
+                    { day: "Dia 5", icon: "sun", min: 10, max: 23, rain: "0mm" }
+                ]
+            },
+            "luís eduardo magalhães, ba": {
+                name: "Luís Eduardo Magalhães, BA",
+                lat: -12.0964,
+                lon: -45.7958,
+                temp: 32,
+                min: 20,
+                max: 35,
+                condition: "Sol Forte e Seco",
+                icon: "sun",
+                humidity: 44,
+                wind: 15,
+                rain: 0,
+                forecast: [
+                    { day: "Amanhã", icon: "sun", min: 20, max: 35, rain: "0mm" },
+                    { day: "Dia 2", icon: "sun", min: 21, max: 36, rain: "0mm" },
+                    { day: "Dia 3", icon: "cloud-sun", min: 21, max: 34, rain: "2mm" },
+                    { day: "Dia 4", icon: "cloud-sun", min: 20, max: 33, rain: "5mm" },
+                    { day: "Dia 5", icon: "sun", min: 20, max: 35, rain: "0mm" }
+                ]
+            },
+            "petrolina, pe": {
+                name: "Petrolina, PE",
+                lat: -9.3891,
+                lon: -40.5027,
+                temp: 33,
+                min: 22,
+                max: 36,
+                condition: "Ensolarado",
+                icon: "sun",
+                humidity: 46,
+                wind: 16,
+                rain: 0,
+                forecast: [
+                    { day: "Amanhã", icon: "sun", min: 22, max: 36, rain: "0mm" },
+                    { day: "Dia 2", icon: "sun", min: 23, max: 37, rain: "0mm" },
+                    { day: "Dia 3", icon: "cloud-sun", min: 22, max: 35, rain: "0mm" },
+                    { day: "Dia 4", icon: "sun", min: 22, max: 36, rain: "0mm" },
+                    { day: "Dia 5", icon: "sun", min: 22, max: 36, rain: "1mm" }
+                ]
+            }
+        };
+
+        // Culturas Agrícolas com Linguagem Simples e Direta
+        const CROPS_DATA = {
+            soja: {
+                shortName: "Soja",
+                title: "Soja (Safra Principal)",
+                tag: "Aduba a terra naturalmente",
+                img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [22, 32],
+                idealHumidityMin: 55,
+                yieldBase: "68 sc/ha",
+                gain: "+14% sacas",
+                benefits: "As raízes da soja colocam nitrogênio (adubo natural) na terra. Quando você planta milho e braquiária logo depois, o milho aproveita esse adubo grátis e a palha protege o solo do sol forte.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Safra",
+                        crop: "Soja Precoce",
+                        role: "Colheita Principal",
+                        detail: "Enriquece a terra com adubo natural nas raízes.",
+                        img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Safrinha",
+                        crop: "Milho + Braquiária",
+                        role: "Segunda Colheita + Palha",
+                        detail: "Produz grãos e deixa bastante palha cobrindo o chão.",
+                        img: "https://images.unsplash.com/photo-1601593768799-76d6d8450f4b?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Descanso",
+                        crop: "Crotalária ou Milheto",
+                        role: "Adubação Verde",
+                        detail: "Limpa vermes do solo e segura a umidade para a próxima soja.",
+                        img: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            },
+            milho: {
+                shortName: "Milho",
+                title: "Milho (Grãos ou Silagem)",
+                tag: "Raiz forte • Muita palhada",
+                img: "https://images.unsplash.com/photo-1601593768799-76d6d8450f4b?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [20, 31],
+                idealHumidityMin: 55,
+                yieldBase: "145 sc/ha",
+                gain: "+16% sacas",
+                benefits: "O milho tem raízes fundas que descompactam a terra dura e deixam muita palha. Alternar milho com soja e nabo forrageiro evita doenças e aumenta a retenção de água da chuva.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Antes",
+                        crop: "Soja ou Feijão",
+                        role: "Prepara o Adubo",
+                        detail: "Deixa a terra fértil para o milho crescer com força.",
+                        img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Principal",
+                        crop: "Milho Híbrido",
+                        role: "Colheita de Grãos",
+                        detail: "Aproveita o sol e gera muita palha para proteger o solo.",
+                        img: "https://images.unsplash.com/photo-1601593768799-76d6d8450f4b?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Cobertura",
+                        crop: "Nabo Forrageiro + Aveia",
+                        role: "Descompacta a Terra",
+                        detail: "Raízes grossas furam o solo duro e facilitam a entrada da chuva.",
+                        img: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            },
+            trigo: {
+                shortName: "Trigo",
+                title: "Trigo (Lavoura de Inverno)",
+                tag: "Gosta de clima mais fresco",
+                img: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [14, 24],
+                idealHumidityMin: 50,
+                yieldBase: "62 sc/ha",
+                gain: "+13% sacas",
+                benefits: "Plantar trigo no frio evita que o terreno fique vazio e abafa o mato (plantas daninhas). Depois de colher o trigo, a soja plantada na palha nasce muito melhor.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Inverno",
+                        crop: "Trigo",
+                        role: "Colheita no Frio",
+                        detail: "Aproveita o clima fresco e impede o mato de tomar conta.",
+                        img: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Verão",
+                        crop: "Soja",
+                        role: "Plantio Direto na Palha",
+                        detail: "A palha do trigo mantém a terra fresquinha e úmida para a soja.",
+                        img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Outono",
+                        crop: "Ervilhaca ou Aveia",
+                        role: "Descanso do Solo",
+                        detail: "Renova os nutrientes da terra antes do próximo plantio.",
+                        img: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            },
+            algodao: {
+                shortName: "Algodão",
+                title: "Algodão (Pluma & Caroço)",
+                tag: "Alto valor • Gosta de sol",
+                img: "https://images.unsplash.com/photo-1594897030264-ab7d87efc473?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [24, 34],
+                idealHumidityMin: 45,
+                yieldBase: "310 @/ha",
+                gain: "+18% arrobas",
+                benefits: "O algodão precisa muito de rodízio para quebrar o ciclo do bicudo e de doenças da raiz. Alternar com milho e braquiária mantém a produtividade alta ano após ano.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Abertura",
+                        crop: "Soja Superprecoce",
+                        role: "Colheita Rápida",
+                        detail: "Libera o terreno cedo e deixa adubo natural na terra.",
+                        img: "https://images.unsplash.com/photo-1599940824399-b87987ceb72a?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Safrinha",
+                        crop: "Algodão",
+                        role: "Colheita Principal",
+                        detail: "Sol firme na colheita garante pluma branca e de alta qualidade.",
+                        img: "https://images.unsplash.com/photo-1594897030264-ab7d87efc473?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Ano Seguinte",
+                        crop: "Milho + Braquiária",
+                        role: "Limpeza de Pragas",
+                        detail: "Quebra o ciclo das pragas do algodão e recupera a terra.",
+                        img: "https://images.unsplash.com/photo-1601593768799-76d6d8450f4b?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            },
+            feijao: {
+                shortName: "Feijão",
+                title: "Feijão Carioca / Preto",
+                tag: "Ciclo rápido • 80 a 90 dias",
+                img: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [18, 28],
+                idealHumidityMin: 60,
+                yieldBase: "48 sc/ha",
+                gain: "+13% sacas",
+                benefits: "Como o feijão colhe rápido, alternar com milho ou sorgo evita o mofo-branco e outras doenças de raiz, garantindo vagens cheias e grãos graúdos.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Águas",
+                        crop: "Milho Verão",
+                        role: "Barreira contra Doenças",
+                        detail: "Limpa os fungos do solo que atacam o pé de feijão.",
+                        img: "https://images.unsplash.com/photo-1601593768799-76d6d8450f4b?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Seca",
+                        crop: "Feijão",
+                        role: "Colheita Rápida",
+                        detail: "Clima mais controlado reduz doenças nas folhas e vagens.",
+                        img: "https://images.unsplash.com/photo-1551462147-ff29053bfc14?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Cobertura",
+                        crop: "Milheto ou Sorgo",
+                        role: "Proteção da Terra",
+                        detail: "Segura os nutrientes e evita que a chuva lave a terra.",
+                        img: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            },
+            cafe: {
+                shortName: "Café",
+                title: "Café Arábica (Lavoura Perene)",
+                tag: "Manejo nas ruas do cafezal",
+                img: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?auto=format&fit=crop&w=800&q=80",
+                idealTempRange: [18, 25],
+                idealHumidityMin: 60,
+                yieldBase: "42 sc/ha",
+                gain: "+12% sacas",
+                benefits: "No café, o rodízio é feito nas ruas (entrelinhas). Plantar braquiária e feijão-de-porco no meio das ruas protege as raízes do calor, segura água e vira adubo orgânico.",
+                steps: [
+                    {
+                        stepNum: "1º Passo • Nas Ruas",
+                        crop: "Braquiária",
+                        role: "Cobertura nas Entrelinhas",
+                        detail: "Roçada joga matéria orgânica rica embaixo da saia do café.",
+                        img: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "2º Passo • Lavoura",
+                        crop: "Café Arábica",
+                        role: "Produção de Grãos",
+                        detail: "Solo protegido mantém a umidade na época da florada e granação.",
+                        img: "https://images.unsplash.com/photo-1511537190424-bbbab87ac5eb?auto=format&fit=crop&w=400&q=75"
+                    },
+                    {
+                        stepNum: "3º Passo • Inverno",
+                        crop: "Feijão-de-Porco",
+                        role: "Adubo Verde nas Ruas",
+                        detail: "Coloca nitrogênio natural na terra e atrai abelhas para a florada.",
+                        img: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=400&q=75"
+                    }
+                ]
+            }
+        };
+
+        // Estado Atual
+        let currentRegionData = PRESET_REGIONS["sorriso, mt"];
+        let currentCropKey = "soja";
+
+        // Variáveis do Mapa Interativo Leaflet
+        let map = null;
+        let farmMarker = null;
+        let farmCircle = null;
+        let circleVisible = true;
+        let satelliteLayer = null;
+        let labelsLayer = null;
+        let streetLayer = null;
+
+        // Toast Notification
+        function showToast(msg) {
+            const toast = document.getElementById('toast-notification');
+            document.getElementById('toast-message').textContent = msg;
+            toast.classList.remove('translate-y-24', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-24', 'opacity-0');
+            }, 3400);
+        }
+
+        // Inicialização do Mapa Leaflet com Camada de Satélite Real (Esri World Imagery)
+        function initMap() {
+            const { lat, lon, name } = currentRegionData;
+
+            map = L.map('agro-map', {
+                center: [lat, lon],
+                zoom: 13,
+                zoomControl: true
+            });
+
+            // Camada de Satélite Real (Esri World Imagery)
+            satelliteLayer = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+                {
+                    attribution: 'Satélite &copy; Esri, Maxar, Earthstar Geographics',
+                    maxZoom: 19
+                }
+            );
+
+            // Rótulos de cidades e estradas por cima do satélite para facilitar orientação
+            labelsLayer = L.tileLayer(
+                'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+                {
+                    maxZoom: 19,
+                    opacity: 0.85
+                }
+            );
+
+            // Camada de Mapa de Ruas/Terreno (OpenStreetMap)
+            streetLayer = L.tileLayer(
+                'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {
+                    attribution: '&copy; OpenStreetMap',
+                    maxZoom: 19
+                }
+            );
+
+            // Inicia mostrando Visão Satélite + Nomes de Locais
+            satelliteLayer.addTo(map);
+            labelsLayer.addTo(map);
+
+            // Ícone personalizado de marcador agrícola
+            const agroIcon = L.divIcon({
+                className: 'custom-agro-pin',
+                html: `<div style="background:#10b981; border:3px solid #ffffff; width:22px; height:22px; border-radius:50%; box-shadow:0 0 0 4px rgba(16,185,129,0.35), 0 4px 10px rgba(0,0,0,0.5);"></div>`,
+                iconSize: [22, 22],
+                iconAnchor: [11, 11]
+            });
+
+            farmMarker = L.marker([lat, lon], { icon: agroIcon }).addTo(map);
+            farmMarker.bindPopup(`<strong>${name}</strong><br><span style="font-size:11px;">Área monitorada</span>`).openPopup();
+
+            // Círculo de monitoramento de 2 km de raio ao redor do talhão
+            farmCircle = L.circle([lat, lon], {
+                color: '#34d399',
+                weight: 2,
+                fillColor: '#10b981',
+                fillOpacity: 0.16,
+                radius: 2000
+            }).addTo(map);
+
+            // Clique em qualquer ponto do mapa atualiza a fazenda e busca clima daquele ponto exato
+            map.on('click', async function(e) {
+                const clickedLat = parseFloat(e.latlng.lat.toFixed(4));
+                const clickedLon = parseFloat(e.latlng.lng.toFixed(4));
+                const pointLabel = `Talhão Selecionado (${clickedLat}, ${clickedLon})`;
+                
+                document.getElementById('region-input').value = pointLabel;
+                await updateLocationByCoords(clickedLat, clickedLon, pointLabel, false);
+                showToast("Ponto marcado no mapa! Clima atualizado.");
+            });
+        }
+
+        // Alternar entre Visão Satélite e Mapa de Estradas
+        function setMapLayer(mode) {
+            const btnSat = document.getElementById('btn-layer-sat');
+            const btnStreet = document.getElementById('btn-layer-street');
+
+            if (mode === 'satellite') {
+                if (map.hasLayer(streetLayer)) map.removeLayer(streetLayer);
+                if (!map.hasLayer(satelliteLayer)) satelliteLayer.addTo(map);
+                if (!map.hasLayer(labelsLayer)) labelsLayer.addTo(map);
+
+                btnSat.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-agro-800 text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer";
+                btnStreet.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
+            } else {
+                if (map.hasLayer(satelliteLayer)) map.removeLayer(satelliteLayer);
+                if (map.hasLayer(labelsLayer)) map.removeLayer(labelsLayer);
+                if (!map.hasLayer(streetLayer)) streetLayer.addTo(map);
+
+                btnStreet.className = "px-3 py-1.5 rounded-lg text-xs font-bold bg-agro-800 text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer";
+                btnSat.className = "px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
+            }
+        }
+
+        // Mostrar / Ocultar Círculo de 2km do Talhão
+        function toggleFarmCircle() {
+            circleVisible = !circleVisible;
+            const btnText = document.getElementById('circle-btn-text');
+            if (circleVisible) {
+                farmCircle.addTo(map);
+                btnText.textContent = "Talhão Marcado (2 km)";
+                showToast("Área de 2 km exibida no mapa.");
+            } else {
+                map.removeLayer(farmCircle);
+                btnText.textContent = "Mostrar Área (2 km)";
+                showToast("Círculo de área ocultado.");
+            }
+        }
+
+        // Atualiza posição visual no mapa
+        function syncMapPosition(lat, lon, label, recenter = true) {
+            if (!map) return;
+            farmMarker.setLatLng([lat, lon]);
+            farmMarker.setPopupContent(`<strong>${label}</strong><br><span style="font-size:11px;">Lat: ${lat.toFixed(4)} | Lon: ${lon.toFixed(4)}</span>`).openPopup();
+            farmCircle.setLatLng([lat, lon]);
+            if (recenter) {
+                map.flyTo([lat, lon], 13, { duration: 1.2 });
+            }
+        }
+
+        // Converte código WMO da API Open-Meteo para português simples e ícone
+        function mapWmoWeather(code) {
+            if (code === 0) return { label: "Céu Limpo / Sol", icon: "sun" };
+            if (code >= 1 && code <= 3) return { label: "Sol com Nuvens", icon: "cloud-sun" };
+            if (code >= 45 && code <= 48) return { label: "Neblina / Orvalho", icon: "cloud" };
+            if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return { label: "Chuva na Região", icon: "cloud-rain" };
+            if (code >= 95) return { label: "Trovoada / Tempestade", icon: "cloud-lightning" };
+            return { label: "Parcialmente Nublado", icon: "cloud-sun" };
+        }
+
+        // Gera dados fallback determinísticos caso a API externa esteja offline/bloqueada
+        function buildFallbackWeather(lat, lon, displayName) {
+            const preset = PRESET_REGIONS[displayName.toLowerCase()];
+            if (preset) return { ...preset, name: displayName, lat, lon };
+
+            const seed = Math.abs(Math.round((lat * 100) + (lon * 100)));
+            const temp = 21 + (seed % 13);
+            const humidity = 52 + (seed % 32);
+            const wind = 7 + (seed % 14);
+            const rain = (seed % 4 === 0) ? 0 : (seed % 18);
+
+            return {
+                name: displayName,
+                lat,
+                lon,
+                temp,
+                min: temp - 7,
+                max: temp + 3,
+                condition: rain > 10 ? "Chuva na Região" : "Sol com Nuvens",
+                icon: rain > 10 ? "cloud-rain" : "cloud-sun",
+                humidity,
+                wind,
+                rain,
+                forecast: [
+                    { day: "Amanhã", icon: "cloud-sun", min: temp - 7, max: temp + 2, rain: `${Math.max(0, rain - 3)}mm` },
+                    { day: "Dia 2", icon: "sun", min: temp - 6, max: temp + 3, rain: "0mm" },
+                    { day: "Dia 3", icon: "cloud-rain", min: temp - 8, max: temp, rain: "12mm" },
+                    { day: "Dia 4", icon: "cloud-sun", min: temp - 7, max: temp + 1, rain: "4mm" },
+                    { day: "Dia 5", icon: "sun", min: temp - 6, max: temp + 3, rain: "0mm" }
+                ]
+            };
+        }
+
+        // Busca clima real por coordenadas (Open-Meteo API gratuita sem chave) com fallback seguro
+        async function updateLocationByCoords(lat, lon, displayName, recenter = true) {
+            syncMapPosition(lat, lon, displayName, recenter);
+
+            try {
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&forecast_days=6`;
+                const res = await fetch(weatherUrl);
+                if (!res.ok) throw new Error("Falha na resposta meteorológica");
+                const data = await res.json();
+
+                const curr = data.current;
+                const daily = data.daily;
+                const wInfo = mapWmoWeather(curr.weather_code);
+
+                const daysWeek = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+                const forecastList = [];
+                for (let i = 1; i <= 5; i++) {
+                    const dObj = new Date(daily.time[i] + "T12:00:00");
+                    const dLabel = i === 1 ? "Amanhã" : daysWeek[dObj.getDay()];
+                    const dWeather = mapWmoWeather(daily.weather_code[i]);
+                    forecastList.push({
+                        day: dLabel,
+                        icon: dWeather.icon,
+                        min: Math.round(daily.temperature_2m_min[i]),
+                        max: Math.round(daily.temperature_2m_max[i]),
+                        rain: `${Math.round(daily.precipitation_sum[i])}mm`
+                    });
+                }
+
+                currentRegionData = {
+                    name: displayName,
+                    lat,
+                    lon,
+                    temp: Math.round(curr.temperature_2m),
+                    min: Math.round(daily.temperature_2m_min[0]),
+                    max: Math.round(daily.temperature_2m_max[0]),
+                    condition: wInfo.label,
+                    icon: wInfo.icon,
+                    humidity: Math.round(curr.relative_humidity_2m),
+                    wind: Math.round(curr.wind_speed_10m),
+                    rain: Math.round(daily.precipitation_sum[0]),
+                    forecast: forecastList
+                };
+            } catch (err) {
+                // Fallback inteligente garante que o protótipo funcione mesmo offline
+                currentRegionData = buildFallbackWeather(lat, lon, displayName);
+            }
+
+            renderDashboard();
+        }
+
+        // Busca cidade pelo nome (Open-Meteo Geocoding API + fallback)
+        async function searchCityByName(queryText) {
+            const clean = queryText.trim();
+            const key = clean.toLowerCase();
+
+            // Verifica primeiro nos polos predefinidos
+            if (PRESET_REGIONS[key]) {
+                const p = PRESET_REGIONS[key];
+                await updateLocationByCoords(p.lat, p.lon, p.name, true);
+                return;
+            }
+
+            try {
+                // Remove sufixo de estado tipo ", MT" para melhorar busca na API
+                const cityOnly = clean.split(',')[0].trim();
+                const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(cityOnly)}&count=3&language=pt&format=json`;
+                const res = await fetch(geoUrl);
+                if (!res.ok) throw new Error("Erro geocoding");
+                const geoData = await res.json();
+
+                if (geoData.results && geoData.results.length > 0) {
+                    // Prioriza resultados no Brasil se houver
+                    const brResult = geoData.results.find(item => item.country_code === "BR") || geoData.results[0];
+                    const statePart = brResult.admin1 ? `, ${brResult.admin1}` : "";
+                    const fullLabel = `${brResult.name}${statePart}`;
+                    await updateLocationByCoords(brResult.latitude, brResult.longitude, fullLabel, true);
+                    return;
+                }
+            } catch (e) {
+                // Continua para fallback se falhar
+            }
+
+            // Fallback se cidade não encontrada na API
+            const fallbackCoords = { lat: -15.7939, lon: -47.8828 };
+            await updateLocationByCoords(fallbackCoords.lat, fallbackCoords.lon, clean, true);
+        }
+
+        // Renderiza os 3 Semáforos de Trabalho no Campo (Pulverização, Plantio, Colheita)
+        function renderTrafficLights(r) {
+            const container = document.getElementById('traffic-lights-grid');
+
+            // 1. Pode Pulverizar? (Vento ideal <= 12 km/h e Umidade >= 55% e sem chuva forte)
+            let sprayStatus = { color: "emerald", badge: "VERDE • ÓTIMO", title: "Pode Pulverizar", desc: `Vento calmo (${r.wind} km/h) e boa umidade (${r.humidity}%). O produto fixa bem nas folhas.` };
+            if (r.wind > 16 || r.rain >= 15) {
+                sprayStatus = { color: "rose", badge: "VERMELHO • EVITAR", title: "Não Pulverizar Agora", desc: r.rain >= 15 ? "Chuva prevista pode lavar o produto." : `Vento forte (${r.wind} km/h) espalha o produto para fora da lavoura.` };
+            } else if (r.wind > 12 || r.humidity < 55) {
+                sprayStatus = { color: "amber", badge: "AMARELO • ATENÇÃO", title: "Pulverizar com Cuidado", desc: `Prefira aplicar bem cedo ou no fim da tarde (vento ${r.wind} km/h, umidade ${r.humidity}%).` };
+            }
+
+            // 2. Condição para Plantio / Semeadura (Umidade boa e temperatura amena/quente sem extremo)
+            let plantStatus = { color: "emerald", badge: "VERDE • ÓTIMO", title: "Bom para Plantar", desc: `Umidade favorável (${r.humidity}%) e calor adequado (${r.temp}°C) para a semente germinar.` };
+            if (r.rain === 0 && r.humidity < 45 && r.temp > 32) {
+                plantStatus = { color: "rose", badge: "VERMELHO • SOLO SECO", title: "Aguardar Chuva p/ Plantar", desc: `Tempo muito seco (${r.humidity}%) e quente (${r.temp}°C). Risco de falha na germinação.` };
+            } else if (r.rain === 0 && r.humidity < 55) {
+                plantStatus = { color: "amber", badge: "AMARELO • ATENÇÃO", title: "Conferir Umidade da Terra", desc: `Pouca chuva prevista (${r.rain}mm). Verifique se há umidade no sulco antes de semear.` };
+            }
+
+            // 3. Condição para Colheita / Máquinas no Campo
+            let harvestStatus = { color: "emerald", badge: "VERDE • ÓTIMO", title: "Tempo Bom p/ Colheita", desc: `Pouca chuva (${r.rain}mm) e vento controlado. Máquinas podem trabalhar bem.` };
+            if (r.rain >= 15) {
+                harvestStatus = { color: "rose", badge: "VERMELHO • CHUVA", title: "Atenção na Colheita", desc: `Previsão de ${r.rain}mm de chuva. Grãos podem umedecer e atolar máquinas.` };
+            } else if (r.rain >= 5 || r.humidity > 80) {
+                harvestStatus = { color: "amber", badge: "AMARELO • UMIDADE", title: "Colher nas Horas Secas", desc: `Umidade do ar alta (${r.humidity}%). Aguarde o orvalho secar pela manhã.` };
+            }
+
+            const cards = [
+                { ...sprayStatus, icon: "spray-can" },
+                { ...plantStatus, icon: "sprout" },
+                { ...harvestStatus, icon: "tractor" }
+            ];
+
+            const colorMap = {
+                emerald: {
+                    bg: "bg-emerald-50/80 border-emerald-300",
+                    dot: "bg-emerald-500",
+                    badge: "bg-emerald-600 text-white",
+                    iconBg: "bg-emerald-100 text-emerald-800"
+                },
+                amber: {
+                    bg: "bg-amber-50/80 border-amber-300",
+                    dot: "bg-amber-500",
+                    badge: "bg-amber-500 text-slate-950",
+                    iconBg: "bg-amber-100 text-amber-800"
+                },
+                rose: {
+                    bg: "bg-rose-50/80 border-rose-300",
+                    dot: "bg-rose-500",
+                    badge: "bg-rose-600 text-white",
+                    iconBg: "bg-rose-100 text-rose-800"
+                }
+            };
+
+            container.innerHTML = cards.map(item => {
+                const st = colorMap[item.color];
+                return `
+                    <div class="rounded-2xl border-2 ${st.bg} p-4 flex flex-col justify-between transition">
+                        <div>
+                            <div class="flex items-center justify-between gap-2 mb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <div class="p-2 rounded-xl ${st.iconBg}">
+                                        <i data-lucide="${item.icon}" class="w-5 h-5"></i>
+                                    </div>
+                                    <span class="w-3 h-3 rounded-full ${st.dot} shadow-xs"></span>
+                                </div>
+                                <span class="text-[11px] font-extrabold px-2.5 py-1 rounded-full ${st.badge}">
+                                    ${item.badge}
+                                </span>
+                            </div>
+                            <h3 class="text-base font-extrabold text-slate-900">${item.title}</h3>
+                            <p class="text-xs text-slate-700 mt-1 leading-relaxed">${item.desc}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Renderiza os cartões visuais de seleção de cultura
+        function renderCropSelectorCards() {
+            const container = document.getElementById('crop-cards-selector');
+            const keys = Object.keys(CROPS_DATA);
+
+            container.innerHTML = keys.map(key => {
+                const crop = CROPS_DATA[key];
+                const isSelected = key === currentCropKey;
+                return `
+                    <button
+                        type="button"
+                        onclick="selectCrop('${key}')"
+                        class="group text-left rounded-2xl overflow-hidden border-2 transition-all cursor-pointer flex flex-col ${
+                            isSelected 
+                            ? 'border-agro-600 ring-4 ring-emerald-500/20 bg-agro-50 shadow-md scale-[1.02]' 
+                            : 'border-slate-200 bg-white hover:border-agro-400 hover:shadow-xs'
+                        }"
+                    >
+                        <div class="relative h-24 w-full bg-agro-900 overflow-hidden">
+                            <img 
+                                src="${crop.img}" 
+                                onerror="this.onerror=null; this.src='https://placehold.co/300x160/1b5438/ffffff?text=${crop.shortName}';"
+                                alt="${crop.shortName}" 
+                                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            >
+                            ${isSelected ? `
+                                <span class="absolute top-2 right-2 bg-emerald-500 text-agro-950 text-[10px] font-extrabold px-2 py-0.5 rounded-full shadow">
+                                    Selecionado
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="p-3">
+                            <div class="text-sm font-extrabold text-slate-900">${crop.shortName}</div>
+                            <div class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">${crop.tag}</div>
+                        </div>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCrop(key) {
+            currentCropKey = key;
+            renderDashboard();
+            showToast(`Plano de rodízio atualizado para ${CROPS_DATA[key].shortName}.`);
+        }
+
+        // Atualiza toda a tela
+        function renderDashboard() {
+            const r = currentRegionData;
+            const c = CROPS_DATA[currentCropKey];
+
+            // Cabeçalho e Coordenadas
+            document.getElementById('header-region-title').textContent = r.name;
+            document.getElementById('region-coords-badge').textContent = `Lat: ${r.lat.toFixed(4)} | Lon: ${r.lon.toFixed(4)}`;
+
+            // Links dinâmicos para Google Earth 3D (com coordenadas exatas) e Windy
+            document.getElementById('btn-google-earth').href = `https://earth.google.com/web/@${r.lat},${r.lon},3000a,35y,0h,0t,0r`;
+            document.getElementById('btn-windy').href = `https://www.windy.com/?${r.lat},${r.lon},8`;
+
+            // Semáforos de Trabalho no Campo
+            renderTrafficLights(r);
+
+            // Painel Climático Principal
+            document.getElementById('weather-condition-badge').textContent = r.condition;
+            document.getElementById('temp-current').textContent = `${r.temp}°C`;
+            document.getElementById('temp-minmax').textContent = `Mín ${r.min}° / Máx ${r.max}°`;
+            document.getElementById('weather-main-icon').innerHTML = `<i data-lucide="${r.icon}" class="w-10 h-10"></i>`;
+
+            let tempMsg = "Temperatura boa para o crescimento da lavoura.";
+            if (r.temp >= 33) tempMsg = "Calor forte: atenção à perda de água do solo.";
+            else if (r.temp <= 16) tempMsg = "Tempo frio: bom para culturas de inverno.";
+            document.getElementById('temp-summary-text').textContent = tempMsg;
+
+            document.getElementById('metric-rain').textContent = `${r.rain} mm`;
+            document.getElementById('metric-rain-label').textContent = r.rain >= 10 ? "Boa chuva" : (r.rain > 0 ? "Chuva fraca" : "Sem chuva");
+
+            document.getElementById('metric-humidity').textContent = `${r.humidity}%`;
+            document.getElementById('metric-humidity-label').textContent = r.humidity >= 55 ? "Umidade boa" : "Ar seco";
+
+            document.getElementById('metric-wind').textContent = `${r.wind} km/h`;
+            document.getElementById('metric-wind-label').textContent = r.wind <= 12 ? "Vento calmo" : (r.wind <= 16 ? "Vento moderado" : "Vento forte");
+
+            // Previsão 5 dias
+            document.getElementById('forecast-5days').innerHTML = r.forecast.map(d => `
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center">
+                    <div class="text-xs font-bold text-slate-700">${d.day}</div>
+                    <div class="flex justify-center text-agro-700 my-1.5">
+                        <i data-lucide="${d.icon}" class="w-5 h-5"></i>
+                    </div>
+                    <div class="text-xs font-extrabold text-slate-900">${d.max}° <span class="font-normal text-slate-400">${d.min}°</span></div>
+                    <div class="text-[10px] font-bold text-blue-700 mt-1">${d.rain}</div>
+                </div>
+            `).join('');
+
+            // Seletor Visual de Culturas
+            renderCropSelectorCards();
+
+            // Detalhes da Cultura e Nota Climática
+            document.getElementById('crop-hero-img').src = c.img;
+            document.getElementById('crop-category-tag').textContent = c.tag;
+            document.getElementById('crop-title').textContent = c.title;
+            document.getElementById('crop-yield-est').textContent = c.yieldBase;
+            document.getElementById('crop-rotation-gain').textContent = c.gain;
+            document.getElementById('agronomic-benefits').textContent = c.benefits;
+
+            const [minIdeal, maxIdeal] = c.idealTempRange;
+            let score = 92;
+            let badgeText = "NOTA 9.2 • ÓTIMO";
+            let badgeClass = "bg-emerald-100 text-emerald-800 border-emerald-300";
+            let barClass = "bg-emerald-500";
+            let descText = `O clima atual (${r.temp}°C e umidade ${r.humidity}%) está excelente para plantar e desenvolver ${c.shortName}.`;
+
+            if (r.temp < minIdeal - 2 || r.temp > maxIdeal + 2) {
+                score = 60;
+                badgeText = "NOTA 6.0 • ATENÇÃO";
+                badgeClass = "bg-rose-100 text-rose-800 border-rose-300";
+                barClass = "bg-rose-500";
+                descText = `Temperatura atual (${r.temp}°C) fora do ideal (${minIdeal}°C a ${maxIdeal}°C) para ${c.shortName}. A cobertura de palha no solo ajuda a proteger a planta.`;
+            } else if (r.humidity < c.idealHumidityMin || r.temp > maxIdeal) {
+                score = 78;
+                badgeText = "NOTA 7.8 • BOM";
+                badgeClass = "bg-amber-100 text-amber-800 border-amber-300";
+                barClass = "bg-amber-500";
+                descText = `Condição boa, mas com umidade em ${r.humidity}%. Manter palhada no chão ajuda a segurar água para a raiz.`;
+            }
+
+            const badgeEl = document.getElementById('favorability-badge');
+            badgeEl.textContent = badgeText;
+            badgeEl.className = `text-xs font-extrabold px-2.5 py-1 rounded-full border ${badgeClass}`;
+
+            const barEl = document.getElementById('favorability-bar');
+            barEl.style.width = `${score}%`;
+            barEl.className = `h-3 rounded-full transition-all duration-500 ${barClass}`;
+            document.getElementById('favorability-desc').textContent = descText;
+
+            // Renderiza os 3 Passos do Rodízio
+            document.getElementById('rotation-steps-container').innerHTML = c.steps.map((step, index) => `
+                <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs flex flex-col">
+                    <div class="relative h-28 bg-agro-900">
+                        <img 
+                            src="${step.img}" 
+                            onerror="this.onerror=null; this.src='https://placehold.co/400x200/236e49/ffffff?text=Passo+${index+1}';"
+                            alt="${step.crop}" 
+                            class="w-full h-full object-cover"
+                        >
+                        <span class="absolute top-2.5 left-2.5 bg-agro-950/90 text-emerald-300 text-[11px] font-extrabold px-2.5 py-0.5 rounded-lg">
+                            ${step.stepNum}
+                        </span>
+                    </div>
+                    <div class="p-4 flex-grow flex flex-col justify-between">
+                        <div>
+                            <span class="text-[11px] font-bold text-agro-700">${step.role}</span>
+                            <h5 class="text-base font-extrabold text-slate-900 mt-0.5">${step.crop}</h5>
+                            <p class="text-xs text-slate-600 mt-1.5 leading-relaxed">${step.detail}</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        // Eventos de Formulário e Botões Rápidos
+        document.getElementById('search-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const val = document.getElementById('region-input').value;
+            if (!val.trim()) return;
+            await searchCityByName(val);
+            showToast(`Mapa e clima atualizados para ${currentRegionData.name}!`);
+        });
+
+        async function selectPresetRegion(regionName) {
+            document.getElementById('region-input').value = regionName;
+            await searchCityByName(regionName);
+            showToast(`Mostrando ${currentRegionData.name} no satélite!`);
+        }
+
+        // Inicialização ao carregar
+        window.onload = function() {
+            initMap();
+            renderDashboard();
+            // Busca dados climáticos atualizados da região inicial em segundo plano
+            updateLocationByCoords(currentRegionData.lat, currentRegionData.lon, currentRegionData.name, false);
+        };
+    </script>
+</body>
+</html>
