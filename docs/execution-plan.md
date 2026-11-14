@@ -48,8 +48,8 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TB.1 — Smooth the NDVI — done (Vinicius; `engine/smooth_ndvi.py`, overwrote `data/ndvi_T*.csv` in place with a daily `ndvi_smooth` column)
 - [x] TB.2 — Detect emergence and peak — done (Vinicius; `engine/detect_phenology.py` → `data/phenology_T*.csv`)
 - [ ] TB.3 — Predict the 2025/26 harvest — TBD
-- [ ] TC.1 — Parameterize candidate crops — **Illia**
-- [ ] TC.2 — Run the historical water balance — **Leo**
+- [x] TC.1 — Parameterize candidate crops — done (Leo took over; `data/crops_params.csv`, provisional literature values — see `docs/crops-params-notes.md`, needs agronomy review)
+- [x] TC.2 — Run the historical water balance — done (Leo; `engine/water_balance.py` -> `data/success_table.csv`, sanity checks pass)
 - [ ] TC.3 — Bare-soil risk — TBD
 - [ ] TD.1 — Pest table — TBD
 - [ ] TD.2 — Write the 4+ strategy cards — TBD
