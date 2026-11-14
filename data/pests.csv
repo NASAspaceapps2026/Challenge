@@ -1,0 +1,16 @@
+pest,crop,effect
+nematode,corn,-1
+nematode,sorghum,-1
+nematode,millet,1
+nematode,brachiaria,1
+nematode,crotalaria,2
+corn_leafhopper,corn,-2
+corn_leafhopper,sorghum,1
+corn_leafhopper,millet,1
+corn_leafhopper,brachiaria,1
+corn_leafhopper,crotalaria,1
+fall_armyworm,corn,-2
+fall_armyworm,sorghum,-1
+fall_armyworm,millet,-1
+fall_armyworm,brachiaria,-1
+fall_armyworm,crotalaria,1
