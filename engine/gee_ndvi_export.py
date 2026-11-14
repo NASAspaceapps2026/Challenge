@@ -22,7 +22,7 @@ from pathlib import Path
 import ee
 import pandas as pd
 
-GEE_PROJECT = "your-gcp-project-id"  # TODO: replace before running
+GEE_PROJECT = "nasaspaceapps-514721"
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FIELDS_PATH = REPO_ROOT / "data" / "fields.geojson"

@@ -42,7 +42,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [ ] T0.1 — Accounts and access — *everyone*
 - [x] T0.2 — Repository and data contracts — done
 - [x] T0.3 — Choose the demo fields — done (7 fields, see `data/fields.geojson`)
-- [ ] TA.1 — Export NDVI series — **Vinicius**
+- [x] TA.1 — Export NDVI series — done
 - [x] TA.2 — Download historical climate — done (Leo; `data/climate_daily.csv`, 2000→2026-11-09, no gaps)
 - [x] TA.3 — Slope per field — done (Leo; `data/fields_attributes.csv`, slopes 2.5-3.7°, areas 105-129 ha)
 - [ ] TB.1 — Smooth the NDVI — **Vinicius**
@@ -95,6 +95,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - **How:** a GEE script that, for each polygon in `fields.geojson`: (1) takes Sentinel-2 SR from 2019→today, filters clouds via the SCL/QA band, computes NDVI = (NIR−RED)/(NIR+RED), takes the polygon's spatial mean per date; (2) does the same with MODIS MOD09GQ/MOD13 to fill cloud gaps; (3) exports one CSV per field to Drive. **Fire these exports in the first hour of the event** — they can take hours.
 - **Input:** `fields.geojson` → **Output:** `ndvi_<field>.csv` (2019–2026 series).
 - **Done when:** CSVs are in `/data` and a quick plot shows the annual soybean "waves".
+- **Done (2026-11-14):** ran via `engine/gee_ndvi_export.py` (Python API, see the Quick start decision above). All 7 fields exported, ~541–548 rows each, 2019→today. Checked year-by-year min/max per field: every year dips to ~0.1 and peaks ~0.9–0.95, the expected rainfed-soybean wave.
 
 ### TA.2 — Download historical climate (NASA POWER + GPM)
 - **Goal:** 25+ years of daily rainfall and temperature for the region.
