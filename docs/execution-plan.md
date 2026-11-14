@@ -44,7 +44,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] T0.3 — Choose the demo fields — done (7 fields, see `data/fields.geojson`)
 - [ ] TA.1 — Export NDVI series — **Vinicius**
 - [x] TA.2 — Download historical climate — done (Leo; `data/climate_daily.csv`, 2000→2026-11-09, no gaps)
-- [ ] TA.3 — Slope per field — **Leo**
+- [x] TA.3 — Slope per field — done (Leo; `data/fields_attributes.csv`, slopes 2.5-3.7°, areas 105-129 ha)
 - [ ] TB.1 — Smooth the NDVI — **Vinicius**
 - [ ] TB.2 — Detect emergence and peak — **Vinicius**
 - [ ] TB.3 — Predict the 2025/26 harvest — TBD
