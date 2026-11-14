@@ -230,11 +230,9 @@ build/
 .DS_Store
 Thumbs.db
 
-# Datasets grandes (baixados localmente, não versionados)
-data/raw/*
-data/processed/*
-!data/raw/.gitkeep
-!data/processed/.gitkeep
+# Large raw satellite rasters (not the exported per-field CSVs/GeoJSON in
+# /data, which ARE committed per docs/CONTRACTS.md — only ignore raw imagery
+# someone downloaded locally for testing)
 *.tif
 *.tiff
 *.nc
