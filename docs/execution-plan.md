@@ -54,14 +54,14 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TC.2 — Run the historical water balance — done (Leo; `engine/water_balance.py` -> `data/success_table.csv`, sanity checks pass)
 - [x] TC.3 — Bare-soil risk — done (Leo; `engine/bare_soil.py` -> `data/bare_soil_T*.csv`, ~100-110 observed bare days/yr)
 - [x] TD.1 — Pest table — done (Leo; `data/pests.csv`, sources in `docs/pests-notes.md`)
-- [ ] TD.2 — Write the 4+ strategy cards — **Vinicius**
+- [x] TD.2 — Write the 4+ strategy cards — done (Vinicius; `web/data/strategies.json`, 4 cards with evidence from our own tables; note: `scoring.js` has its own hardcoded Portuguese labels — display name to be reconciled in review)
 - [x] TD.3 — Scoring function — done (Leo; `web/js/scoring.js`, pure client-side JS)
 - [ ] TE.1 — Page skeleton — **Zé**
 - [x] TE.2 — Connect real data — done (Leo; `engine/export_web_data.py` -> `web/data/*.json`, site fetches real data)
 - [x] TE.3 — Interactivity — done (Leo; slip slider, ENSO filter, weight sliders, constraint/pest checkboxes all live)
-- [ ] TE.4 — All fields + polish — **Vinicius** (coordinate with Zé, it's in `web/`)
+- [x] TE.4 — All fields + polish — done (Vinicius; all 7 fields verified in web/data, 2025/26 replay highlight (mean error 6.0d), glossary tooltips, real-harvest marker on NDVI chart; still needs one manual browser pass)
 - [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
-- [ ] TF.2 — Deploy — **Vinicius**
+- [x] TF.2 — Deploy — done (Vinicius; `.github/workflows/deploy-pages.yml` publishes `web/` to GitHub Pages on every push to main; Pages source set to "GitHub Actions" in repo settings)
 - [ ] TF.3 — Submission — *everyone*
 
 ---
