@@ -2,6 +2,33 @@
 
 Each task has: **goal**, **how to do it**, **input → output**, and **done-when**. One task's output is the next task's input — respecting the agreed formats (see [CONTRACTS.md](CONTRACTS.md)) is what lets us work in parallel without integration errors.
 
+## Task tracker (check off as you go)
+
+Owners for later phases are intentionally left as **TBD** — assign when that phase starts, based on who's free.
+
+- [ ] T0.1 — Accounts and access — *everyone*
+- [x] T0.2 — Repository and data contracts — done
+- [ ] T0.3 — Choose the demo fields — **Vinicius**
+- [ ] TA.1 — Export NDVI series — **Vinicius**
+- [ ] TA.2 — Download historical climate — **Leo**
+- [ ] TA.3 — Slope per field — **Leo**
+- [ ] TB.1 — Smooth the NDVI — **Vinicius**
+- [ ] TB.2 — Detect emergence and peak — **Vinicius**
+- [ ] TB.3 — Predict the 2025/26 harvest — TBD
+- [ ] TC.1 — Parameterize candidate crops — **Illia**
+- [ ] TC.2 — Run the historical water balance — **Leo**
+- [ ] TC.3 — Bare-soil risk — TBD
+- [ ] TD.1 — Pest table — TBD
+- [ ] TD.2 — Write the 4+ strategy cards — TBD
+- [ ] TD.3 — Scoring function — TBD
+- [ ] TE.1 — Page skeleton — **Zé**
+- [ ] TE.2 — Connect real data — **Zé**
+- [ ] TE.3 — Interactivity — TBD
+- [ ] TE.4 — All fields + polish — TBD
+- [ ] TF.1 — IMEA validation — TBD
+- [ ] TF.2 — Deploy — TBD
+- [ ] TF.3 — Submission — *everyone*
+
 ---
 
 ## PHASE 0 — Setup (before coding, ~1h)
