@@ -2,6 +2,37 @@
 
 Each task has: **goal**, **how to do it**, **input → output**, and **done-when**. One task's output is the next task's input — respecting the agreed formats (see [CONTRACTS.md](CONTRACTS.md)) is what lets us work in parallel without integration errors.
 
+## Quick start — read your own section, then go
+
+No need to read the whole plan first. Find your name below, do that task (full details further down this file), commit and push when done.
+
+**Vinicius — TA.1, then TB.1 + TB.2**
+- What: export the NDVI satellite series per field, then clean it into a smooth curve and detect emergence/harvest dates.
+- How: Google Earth Engine (script fired early, takes hours to run) for the export; Python (pandas + scipy's `savgol_filter`) for the smoothing/detection.
+- Output: `data/ndvi_<field>.csv` → `data/phenology_<field>.csv`.
+
+**Leo — TA.2, TA.3, then TC.2**
+- What: pull 25+ years of daily rainfall/temperature, get each field's slope, then simulate the water balance for every candidate crop.
+- How: NASA POWER REST API (simple GET request) for climate; Google Earth Engine (SRTM, ~20 lines) for slope; Python for the day-by-day water balance simulation.
+- Output: `data/climate_daily.csv`, `data/fields_attributes.csv` → `data/success_table.csv`.
+
+**Illia — TC.1**
+- What: fill one row per candidate crop (corn, sorghum, millet, brachiaria, crotalaria) in `data/crops_params.csv`, with these columns:
+  - `cycle_days` — how many days from sowing to harvest/cutting for that crop. Easy to find, any agronomy source states it (e.g. safrinha corn ≈ 110–150 days).
+  - `kc_establishment / kc_vegetative / kc_flowering / kc_filling` — the crop's water-use coefficient (Kc) at each of its 4 growth stages. Kc is just "how much water the crop pulls compared to a reference grass" (Kc=1 means same as reference) — used later to run the water balance. **Source: FAO Irrigation & Drainage Paper 56** (Allen et al. 1998) — it has standard Kc tables per crop/stage. Search "FAO 56 crop coefficient corn/sorghum/millet" — tables are public and widely reproduced online. For brachiaria/crotalaria (not in FAO-56) use Embrapa pasture/cover-crop bulletins, or if nothing specific exists, a reasonable pasture-grass approximation is fine — just note it.
+  - `drought_sensitivity` — a single number saying how badly this crop suffers if water runs short *during its most critical stage* (for corn/sorghum that's flowering; this is well documented agronomically). No fixed scale is defined yet — pick something simple like 0–1 (0 = tolerant, 1 = very sensitive) and use it consistently across all 5 crops; corn should come out higher than sorghum/millet (known to be more drought-tolerant), that's the sanity check.
+  - `zarc_window_start / zarc_window_end` — the official recommended sowing window for Mato Grosso. **Source: ZARC — Zoneamento Agrícola de Risco Climático**, published by MAPA (Ministério da Agricultura). Portal: search "ZARC Mato Grosso" + the crop name (e.g. "ZARC milho safrinha Mato Grosso") — it's a government table by municipality/crop/cycle/soil type. Use Sorriso or Lucas do Rio Verde as the reference municipality.
+- How: pure research — no coding, no GEE, no waiting. Can be done entirely on his own laptop right now, in a spreadsheet, then saved as the CSV.
+- Tip: since the CSV contract has no "source" column, keep a personal notes file (e.g. `data/crops_params_sources.md`, not part of the contract) listing where each number came from — useful if someone questions a value later.
+- Output: `data/crops_params.csv`.
+
+**Zé — TE.1, then TE.2**
+- What: build the site's skeleton first — map, click a field, see its harvest timeline and the 4 ranked strategy cards, plus a controls panel. Use fake data in the agreed format so you don't wait on anyone.
+- How: plain HTML/CSS/JS, no framework, no build step; Leaflet.js for the map. Later (TE.2) swap the fake JSON for the real files the engine exports to `web/data/`.
+- Output: a navigable page with mock data → same page reading real JSON.
+
+Everyone: exact file formats are law — see [CONTRACTS.md](CONTRACTS.md) before writing any CSV/JSON.
+
 ## Task tracker (check off as you go)
 
 Owners for later phases are intentionally left as **TBD** — assign when that phase starts, based on who's free.
