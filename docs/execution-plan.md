@@ -10,11 +10,13 @@ No need to read the whole plan first. Find your name below, do that task (full d
 - What: export the NDVI satellite series per field, then clean it into a smooth curve and detect emergence/harvest dates.
 - How: Google Earth Engine (script fired early, takes hours to run) for the export; Python (pandas + scipy's `savgol_filter`) for the smoothing/detection.
 - Output: `data/ndvi_<field>.csv` → `data/phenology_<field>.csv`.
+- **Round 2 (assigned 2026-11-14, Round 1 done):** TB.3 → TF.1 → TD.2 → TE.4 → TF.2. Follows the harvest-prediction chain: TB.3 consumes `phenology_<field>.csv`; TF.1 (IMEA validation) and TE.4's 2025/26 replay mode both consume TB.3's `harvest_pred_<field>.csv`. TD.2 (strategy cards) is the deliverable that's never cut, so start it as soon as TB.3 is done.
 
 **Leo — TA.2, TA.3, then TC.2**
 - What: pull 25+ years of daily rainfall/temperature, get each field's slope, then simulate the water balance for every candidate crop.
 - How: NASA POWER REST API (simple GET request) for climate; Google Earth Engine (SRTM, ~20 lines) for slope; Python for the day-by-day water balance simulation.
 - Output: `data/climate_daily.csv`, `data/fields_attributes.csv` → `data/success_table.csv`.
+- **Round 2 (assigned 2026-11-14, Round 1 done, plus TC.1):** TC.3 → TD.1 → TD.3 → TE.3. Follows the strategy-scoring chain: TC.3 reads the daily `ndvi_smooth` (ready now); TD.3's score combines `success_table.csv`, `bare_soil_<field>.csv` and `pests.csv`, all from this chain; TE.3's sliders re-run that score. TE.3 is in `web/`, which is Zé's area, so agree with him on where the scoring JS plugs in.
 
 **Illia — TC.1**
 - What: fill one row per candidate crop (corn, sorghum, millet, brachiaria, crotalaria) in `data/crops_params.csv`, with these columns:
@@ -47,19 +49,19 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TA.3 — Slope per field — done (Leo; `data/fields_attributes.csv`, slopes 2.5-3.7°, areas 105-129 ha)
 - [x] TB.1 — Smooth the NDVI — done (Vinicius; `engine/smooth_ndvi.py`, overwrote `data/ndvi_T*.csv` in place with a daily `ndvi_smooth` column)
 - [x] TB.2 — Detect emergence and peak — done (Vinicius; `engine/detect_phenology.py` → `data/phenology_T*.csv`)
-- [ ] TB.3 — Predict the 2025/26 harvest — TBD
+- [ ] TB.3 — Predict the 2025/26 harvest — **Vinicius**
 - [x] TC.1 — Parameterize candidate crops — done (Leo took over; `data/crops_params.csv`, provisional literature values — see `docs/crops-params-notes.md`, needs agronomy review)
 - [x] TC.2 — Run the historical water balance — done (Leo; `engine/water_balance.py` -> `data/success_table.csv`, sanity checks pass)
-- [ ] TC.3 — Bare-soil risk — TBD
-- [ ] TD.1 — Pest table — TBD
-- [ ] TD.2 — Write the 4+ strategy cards — TBD
-- [ ] TD.3 — Scoring function — TBD
+- [ ] TC.3 — Bare-soil risk — **Leo**
+- [ ] TD.1 — Pest table — **Leo**
+- [ ] TD.2 — Write the 4+ strategy cards — **Vinicius**
+- [ ] TD.3 — Scoring function — **Leo**
 - [ ] TE.1 — Page skeleton — **Zé**
 - [ ] TE.2 — Connect real data — **Zé**
-- [ ] TE.3 — Interactivity — TBD
-- [ ] TE.4 — All fields + polish — TBD
-- [ ] TF.1 — IMEA validation — TBD
-- [ ] TF.2 — Deploy — TBD
+- [ ] TE.3 — Interactivity — **Leo** (coordinate with Zé, it's in `web/`)
+- [ ] TE.4 — All fields + polish — **Vinicius** (coordinate with Zé, it's in `web/`)
+- [ ] TF.1 — IMEA validation — **Vinicius**
+- [ ] TF.2 — Deploy — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
 
 ---
