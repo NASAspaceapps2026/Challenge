@@ -60,7 +60,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [ ] TE.2 — Connect real data — **Zé**
 - [ ] TE.3 — Interactivity — **Leo** (coordinate with Zé, it's in `web/`)
 - [ ] TE.4 — All fields + polish — **Vinicius** (coordinate with Zé, it's in `web/`)
-- [ ] TF.1 — IMEA validation — **Vinicius**
+- [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
 - [ ] TF.2 — Deploy — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
 
