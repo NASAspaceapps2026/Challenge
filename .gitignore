@@ -218,3 +218,25 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Node.js / frontend
+node_modules/
+npm-debug.log*
+yarn-error.log*
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Datasets grandes (baixados localmente, não versionados)
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+*.tif
+*.tiff
+*.nc
+*.hdf5
+*.h5
