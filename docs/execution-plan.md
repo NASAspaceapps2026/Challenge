@@ -43,7 +43,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] T0.2 — Repository and data contracts — done
 - [x] T0.3 — Choose the demo fields — done (7 fields, see `data/fields.geojson`)
 - [ ] TA.1 — Export NDVI series — **Vinicius**
-- [ ] TA.2 — Download historical climate — **Leo**
+- [x] TA.2 — Download historical climate — done (Leo; `data/climate_daily.csv`, 2000→2026-11-09, no gaps)
 - [ ] TA.3 — Slope per field — **Leo**
 - [ ] TB.1 — Smooth the NDVI — **Vinicius**
 - [ ] TB.2 — Detect emergence and peak — **Vinicius**
