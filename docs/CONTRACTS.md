@@ -106,6 +106,16 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 - **Consumed by:** the Leaflet map (red dashed overlay) and the scoring (`recurrentSpots: true` gives `cover_crotalaria` a +8 bonus).
 - **Honest labeling (binding):** never present as "disease detected" — always "recurrent low-vigor zone, pattern consistent with a soil problem; recommendation: targeted soil sampling".
 
+### `data/rain_odds.csv` / `data/rain_cessation.csv` / `web/data/rain_odds.json`
+- **Produced by:** TG.2 (`engine/rain_odds.py`) — pure climatology from `climate_daily.csv` (2000–2026, 27 Jan–Jun half-years). **No forecast** — honest labeling is binding: always "historical odds".
+- **`rain_odds.csv` columns:** `date, rain_remaining_p10, rain_remaining_p50, rain_remaining_p90, prob_corn, prob_sorghum, prob_millet, prob_brachiaria, prob_crotalaria`
+  - `date`: 2026-01-01 → 2026-04-30, daily (decision-season axis, same convention as `success_table.csv`).
+  - `rain_remaining_*`: percentiles (mm) of historical rain accumulated from `date` to Jun 30.
+  - `prob_<crop>`: share of the 27 years in which rain accumulated during the crop's cycle (`date` → `date + cycle_days`, capped at Jun 30) met the crop's water need. Need = `cycle_days × stage-weighted mean Kc × mean Feb–May ET0` (same ET0 form as `water_balance.py`), from `crops_params.csv`.
+- **`rain_cessation.csv` columns:** `year, cessation_date` — per year, the first date after Feb 1 whose following 20 days accumulate < 20 mm.
+- **`rain_odds.json`:** `{ n_years, year_range, needs_mm: {crop: mm}, cycle_days: {crop: d}, dates: [...], remaining: {p10/p50/p90: [...]}, probs: {crop: [...]}, cessation: {p10/p50/p90: date} }` — arrays parallel to `dates`.
+- **Consumed by:** the "rain left in the season" gauge in `web/index.html`, which re-reads it at the sowing date implied by the slip slider.
+
 ---
 
 ## Validation (Phase F)

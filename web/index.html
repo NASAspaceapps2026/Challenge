@@ -204,6 +204,23 @@ tailwind.config = {
   </div>
 </section>
 
+<!-- 3.5 CHUVA QUE AINDA RESTA (TG.2) -->
+<section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+    <div class="flex items-center gap-2.5">
+      <div class="p-2 bg-sky-100 text-sky-700 rounded-xl"><i data-lucide="cloud-rain" class="w-6 h-6"></i></div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900">Chuva que ainda resta na estação</h3>
+        <p class="text-xs text-slate-500">Em quantos dos últimos 27 anos choveu o suficiente para cada cultura, plantada em cada data? Mova o slider de atraso acima — a linha pontilhada acompanha.</p>
+      </div>
+    </div>
+    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Odds históricas (2000–2026, NASA POWER) — não é previsão</span>
+  </div>
+  <div id="rain-gauge-chart" class="w-full overflow-x-auto"></div>
+  <div id="rain-gauge-readout" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3"></div>
+  <p id="rain-cessation-note" class="text-xs text-slate-600 mt-3 leading-relaxed"></p>
+</section>
+
 <!-- 4. CARDS DE ESTRATÉGIA -->
 <section>
   <div class="mb-4">
@@ -268,7 +285,7 @@ async function loadData() {
       return await r.json();
     } catch (e) { return fallback; }
   };
-  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots] =
+  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds] =
     await Promise.all([
       get("fields.json", { features: [] }),
       get("ndvi.json", {}),
@@ -279,8 +296,9 @@ async function loadData() {
       get("strategies.json", null), // TD.2 — pode ainda não existir
       get("phenology.json", {}),
       get("spots.json", { type: "FeatureCollection", features: [] }), // TG.1
+      get("rain_odds.json", null), // TG.2 — climatologia, sem forecast
     ]);
-  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots };
+  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds };
 }
 
 /* ------------------------------------------------ mapa */
@@ -372,6 +390,94 @@ function renderNdviChart() {
   </svg>`;
 }
 
+/* ------------------------------------------------ TG.2 — gauge "chuva que resta" */
+// Categorical palette (colorblind-validated order, slots 1-5)
+const RAIN_CROPS = [
+  ["corn", "Milho", "#2a78d6"],
+  ["sorghum", "Sorgo", "#eb6834"],
+  ["millet", "Milheto", "#1baf7a"],
+  ["brachiaria", "Braquiária", "#eda100"],
+  ["crotalaria", "Crotalária", "#e87ba4"],
+];
+
+function rainIndexFor(iso) { // nearest index on the 2026 Jan-Apr axis
+  const ro = S.data.rainOdds;
+  const axisISO = "2026" + iso.slice(4);
+  let i = ro.dates.indexOf(axisISO);
+  if (i < 0) i = axisISO < ro.dates[0] ? 0 : ro.dates.length - 1;
+  return i;
+}
+
+function renderRainGauge(sowingISO) {
+  const ro = S.data.rainOdds;
+  const chartEl = document.getElementById("rain-gauge-chart");
+  if (!ro) { chartEl.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">Sem dados de climatologia (rain_odds.json).</p>'; return; }
+
+  const W = 1100, H = 260, M = { t: 18, r: 20, b: 30, l: 42 };
+  const t0 = Date.parse(ro.dates[0]), t1 = Date.parse(ro.dates[ro.dates.length - 1]);
+  const x = t => M.l + (W - M.l - M.r) * (t - t0) / (t1 - t0);
+  const y = p => M.t + (H - M.t - M.b) * (1 - p);
+  const idx = rainIndexFor(sowingISO);
+
+  let grid = "";
+  for (const p of [0, 0.25, 0.5, 0.75, 1]) {
+    grid += `<line x1="${M.l}" y1="${y(p)}" x2="${W - M.r}" y2="${y(p)}" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="${M.l - 6}" y="${y(p) + 4}" font-size="10" fill="#94a3b8" text-anchor="end">${Math.round(p * 100)}%</text>`;
+  }
+  for (const [md, lbl] of [["01-01", "jan"], ["02-01", "fev"], ["03-01", "mar"], ["04-01", "abr"]]) {
+    const xt = x(Date.parse("2026-" + md));
+    grid += `<line x1="${xt}" y1="${M.t}" x2="${xt}" y2="${H - M.b}" stroke="#f1f5f9" stroke-width="1"/>
+      <text x="${xt}" y="${H - 8}" font-size="10" fill="#94a3b8" text-anchor="middle">${lbl}</text>`;
+  }
+
+  // cessation band: p10-p90 of the historical rainy-season end
+  const c10 = x(Date.parse(ro.cessation.p10)), c90 = Math.min(x(Date.parse(ro.cessation.p90)), W - M.r);
+  let cess = "";
+  if (c10 < W - M.r) {
+    cess = `<rect x="${c10.toFixed(1)}" y="${M.t}" width="${Math.max(2, c90 - c10).toFixed(1)}" height="${H - M.t - M.b}" fill="#94a3b8" opacity="0.14"/>
+      <text x="${(c10 + 4).toFixed(1)}" y="${M.t + 12}" font-size="10" font-weight="700" fill="#64748b">fim histórico das chuvas</text>`;
+  }
+
+  let lines = "";
+  for (const [key, , color] of RAIN_CROPS) {
+    const pts = ro.dates.map((d, i) => `${x(Date.parse(d)).toFixed(1)},${y(ro.probs[key][i]).toFixed(1)}`).join(" ");
+    lines += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="${x(Date.parse(ro.dates[idx])).toFixed(1)}" cy="${y(ro.probs[key][idx]).toFixed(1)}" r="4.5" fill="${color}" stroke="#ffffff" stroke-width="2"/>`;
+  }
+
+  const xm = x(Date.parse(ro.dates[idx]));
+  const marker = `<line x1="${xm.toFixed(1)}" y1="${M.t}" x2="${xm.toFixed(1)}" y2="${H - M.b}" stroke="#d97706" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="${(xm > W - 160 ? xm - 5 : xm + 5).toFixed(1)}" y="${M.t + 12}" font-size="11" font-weight="700" fill="#92400e" text-anchor="${xm > W - 160 ? "end" : "start"}">plantio ${fmtDay(ro.dates[idx])}</text>`;
+
+  const legend = RAIN_CROPS.map(([, lbl, color]) =>
+    `<span class="inline-flex items-center gap-1.5 mr-3"><span style="background:${color}" class="inline-block w-3 h-[3px] rounded-full"></span>${lbl}</span>`).join("");
+
+  chartEl.innerHTML = `
+    <div class="text-[11px] font-semibold text-slate-600 mt-2 mb-1">${legend}</div>
+    <svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img"
+      aria-label="Odds históricas de chuva suficiente por cultura e data de plantio">
+      ${grid}${cess}${marker}${lines}
+    </svg>`;
+
+  // per-crop readout at the current sowing date
+  document.getElementById("rain-gauge-readout").innerHTML = RAIN_CROPS.map(([key, lbl, color]) => {
+    const p = ro.probs[key][idx];
+    return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center">
+      <span class="text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5">
+        <span style="background:${color}" class="inline-block w-2.5 h-2.5 rounded-full"></span>${lbl}</span>
+      <span class="text-lg font-extrabold text-slate-900">${Math.round(p * 100)}%</span>
+      <span class="text-[10px] text-slate-500 block">dos anos choveu ≥ ${ro.needs_mm[key]} mm no ciclo</span>
+    </div>`;
+  }).join("");
+
+  document.getElementById("rain-cessation-note").innerHTML =
+    `<strong>Quando as chuvas costumam acabar:</strong> em metade dos últimos ${ro.n_years} anos, as chuvas
+    cessaram por volta de <strong>${fmtDay(ro.cessation.p50)}</strong>
+    (entre ${fmtDay(ro.cessation.p10)} e ${fmtDay(ro.cessation.p90)} em 80% dos anos).
+    Plantar perto desse limite significa terminar o ciclo no seco — por isso as curvas desabam ao longo de março.
+    <em>Estas são frequências históricas (NASA POWER, 2000–2026), não uma previsão do tempo.</em>`;
+}
+
 /* ------------------------------------------------ cards */
 function cardsText(id) {
   const list = S.data.strategies; // textos completos vêm de strategies.json (TD.2)
@@ -386,6 +492,7 @@ function renderCards() {
   const h = S.data.harvest[S.fieldId];
   const sowing = h ? addDays(h.p50, S.slip + S.TURNAROUND_DAYS) : "2026-02-15";
   document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
+  renderRainGauge(sowing); // TG.2 — gauge follows the slip slider
 
   const feat = (S.data.fields.features || []).find(f => f.properties.id === S.fieldId);
   const selectedPests = [

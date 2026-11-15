@@ -63,7 +63,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
 - [x] TF.2 — Deploy — done (Vinicius; `.github/workflows/deploy-pages.yml` publishes `web/` to GitHub Pages on every push to main; Pages source set to "GitHub Actions" in repo settings)
 - [x] TG.1 — Recurrent low-vigor spots per field — done (Vinicius; `engine/low_vigor_spots.py` → 7 zones in T1/T2/T4/T5, map overlay + crotalaria evidence + +8 scoring bonus)
-- [ ] TG.2 — "Rain left in the season" gauge (CHIRPS/POWER climatology) — **TBD**
+- [x] TG.2 — "Rain left in the season" gauge (POWER climatology) — done (Vinicius; `engine/rain_odds.py` → `data/rain_odds.csv` + `web/data/rain_odds.json`, gauge follows the slip slider; odds collapse through March as expected, median rain cessation Apr 22)
 - [ ] TG.3 — Relative productivity per field (NDVI integral vs own history) — **Vinicius**
 - [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
