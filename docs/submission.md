@@ -50,7 +50,10 @@ https://nasaspaceapps2026.github.io/Challenge/
 ## Detailed Description
 
 The farmer selects a field on a satellite map. The page shows the predicted
-harvest window (P10, P50, P90), the field's NDVI curve with that window marked,
+harvest window as three dates, P10, P50 and P90: there is a 10% chance the
+harvest happens before the P10 date, 50% before P50, and 90% before P90. P50 is
+the expected date, and the interval from P10 to P90 expresses how certain the
+prediction is. The page also shows the field's NDVI curve with that window marked,
 and four ranked strategy cards for what to plant after the soybean: second-crop
 corn, which is the current practice, corn with brachiaria, sorghum or millet,
 and a crotalaria cover crop. The controls re-rank the cards instantly: a slider
