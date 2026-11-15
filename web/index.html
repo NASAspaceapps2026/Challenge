@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Field Shift | Janela de colheita e sucessão com dados NASA</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +145,14 @@ tailwind.config = {
         </div>
         <div id="calib-result" class="hidden mt-2 bg-white border border-amber-300 rounded-lg p-2.5"></div>
       </div>
+    </div>
+
+    <!-- TG.1 — recurrent low-vigor zones, surfaced in the panel (not only map tooltip) -->
+    <div id="spots-box" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
+      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3+ safras — padrão espacial recorrente, compatível com problema de solo. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
+      <p class="mt-1" id="spots-headline">—</p>
+      <div id="spots-list" class="flex flex-wrap gap-1.5 mt-2"></div>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Padrão compatível com nematoide, compactação ou fertilidade — confirme com amostragem de solo direcionada (zonas tracejadas em vermelho no mapa).</p>
     </div>
 
     <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
@@ -740,6 +749,7 @@ function selectField(id) {
   }
 
   renderProductivity(id);
+  renderSpots(id);
 
   const feat = (S.data.fields.features || []).find(f => f.properties.id === id);
   set("field-area", feat && feat.properties.area_ha ? Math.round(feat.properties.area_ha) + " ha" : "—");
@@ -785,6 +795,24 @@ function renderProductivity(id) {
   }).join("");
 
   renderCalibration(id, p);
+}
+
+/* TG.1 — recurrent low-vigor zones in the field panel (beyond the map tooltip) */
+function renderSpots(id) {
+  const box = document.getElementById("spots-box");
+  const sp = (S.data.spots.features || []).filter(f => f.properties.field_id === id);
+  if (!sp.length) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+  const totalHa = sp.reduce((a, f) => a + (f.properties.area_ha || 0), 0);
+  document.getElementById("spots-headline").innerHTML =
+    `O satélite encontrou <strong>${sp.length === 1 ? "1 zona" : sp.length + " zonas"}</strong> deste talhão com
+     NDVI anômalo <strong>no mesmo lugar em 3+ safras</strong> (${totalHa.toFixed(1)} ha no total) —
+     não é azar de uma safra, é um padrão que se repete.`;
+  document.getElementById("spots-list").innerHTML = sp.map((f, i) => {
+    const p = f.properties;
+    return `<span class="px-2 py-1 rounded-lg border bg-rose-100 text-rose-800 border-rose-200 text-[10px] font-bold"
+      title="NDVI anômalo em ${p.seasons_low} de ${p.n_seasons} safras">Zona ${i + 1}: ${p.area_ha} ha · ${p.seasons_low}/${p.n_seasons} safras</span>`;
+  }).join("");
 }
 
 /* TG.4 — farmer's own yields → per-field calibration (localStorage, client-side only) */
