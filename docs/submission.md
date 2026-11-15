@@ -17,27 +17,25 @@ Repo: https://github.com/NASAspaceapps2026/Challenge
 
 ## High-Level Summary
 
+*(~200 words, per the platform's recommendation)*
+
 In Brazil's Mato Grosso grain belt, every soybean farmer faces the same February
 question: the crop is about to come off, a short rain window remains, and whatever
-is planted next — or nothing — will shape the farm's water risk, soil health and
-pest pressure for years. Today that call is made by experience, without
-field-specific data.
+comes next — or nothing — will shape the farm's water risk, soil health and pest
+pressure for years. Today that call is made by experience, without field-specific
+data.
 
-Field Shift answers it with satellites. From each field's own NDVI history
-(NASA MODIS + ESA Sentinel-2) we predict the soybean harvest date as an uncertainty
-range (P10/P50/P90), which measures the *real* planting window left this season.
-We then rank four succession strategies — second-crop corn (the current practice),
-corn + brachiaria grass, sorghum/millet, and a crotalaria cover crop — by running
-each one through 26 years of NASA POWER and GPM rainfall in a daily crop water
-balance, counting satellite-observed bare-soil days, factoring slope-driven erosion
-risk (SRTM) and pest-cycle effects, and weighting everything by the farmer's own
-priorities: income, soil protection, lower risk.
+Field Shift answers it with satellites. From each field's own NDVI history (NASA
+MODIS + ESA Sentinel-2) we predict the soybean harvest date as a P10/P50/P90
+range — the *real* planting window left this season. We then rank four succession
+strategies — second-crop corn (current practice), corn + brachiaria, sorghum/
+millet, and a crotalaria cover crop — by running each through 26 years of NASA
+POWER and GPM rainfall in a daily water balance, counting satellite-observed
+bare-soil days (~100–110 per dry season under the current rotation), and factoring
+SRTM slope and pest-cycle effects, weighted by the farmer's own priorities.
 
-The result is a simple interactive web page — ranked strategy cards over a
-clickable satellite map of a 7-field demonstration farm near Sorriso (MT). Our
-dry-season data shows these fields bare for ~100–110 of 153 dry-season days under
-the current rotation: the tool makes the cost of that visible, and shows what
-realistically fits in each field's window. It runs entirely in the browser on
+The result: ranked strategy cards over a clickable satellite map of a 7-field
+demonstration farm near Sorriso (MT). It runs entirely in the browser on
 pre-computed tables, works on a phone, and explicitly tells the farmer where the
 data ends and their agronomist begins.
 
