@@ -116,6 +116,17 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 - **`rain_odds.json`:** `{ n_years, year_range, needs_mm: {crop: mm}, cycle_days: {crop: d}, dates: [...], remaining: {p10/p50/p90: [...]}, probs: {crop: [...]}, cessation: {p10/p50/p90: date} }` — arrays parallel to `dates`.
 - **Consumed by:** the "rain left in the season" gauge in `web/index.html`, which re-reads it at the sowing date implied by the slip slider.
 
+### `data/productivity_<field_id>.csv` / `web/data/productivity.json`
+- **Produced by:** TG.3 (`engine/productivity.py`) from `ndvi_<field>.csv` + `phenology_<field>.csv`.
+- **CSV columns:** `season, emergence_date, harvest_date, ndvi_integral, n_days, complete, deviation_pct`
+  - `ndvi_integral`: sum of daily `ndvi_smooth` from `emergence_date` to `harvest_date` inclusive (biomass proxy).
+  - `n_days`: number of daily values summed.
+  - `complete`: `true`/`false` — a season without a `harvest_date` (still in the field) gets **no partial integral**: `ndvi_integral`, `n_days`, `deviation_pct` empty.
+  - `deviation_pct`: 100 × (integral − field mean over complete seasons) / mean, 1 decimal.
+- **`productivity.json`:** `{ "<field_id>": { mean_integral, n_seasons, seasons: [{season, ndvi_integral, n_days, complete, deviation_pct}] } }` — incomplete seasons have `null` in the numeric fields.
+- **Consumed by:** the "relative productivity" box on the field panel in `web/index.html` (2025/26 highlighted vs the field's own mean), and TG.4 (per-field yield calibration) as input.
+- **Honest labeling (binding):** RELATIVE signal only — never convert to sacas/ha here; that requires farmer-entered calibration (TG.4).
+
 ---
 
 ## Validation (Phase F)

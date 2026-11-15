@@ -64,7 +64,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TF.2 — Deploy — done (Vinicius; `.github/workflows/deploy-pages.yml` publishes `web/` to GitHub Pages on every push to main; Pages source set to "GitHub Actions" in repo settings)
 - [x] TG.1 — Recurrent low-vigor spots per field — done (Vinicius; `engine/low_vigor_spots.py` → 7 zones in T1/T2/T4/T5, map overlay + crotalaria evidence + +8 scoring bonus)
 - [x] TG.2 — "Rain left in the season" gauge (POWER climatology) — done (Vinicius; `engine/rain_odds.py` → `data/rain_odds.csv` + `web/data/rain_odds.json`, gauge follows the slip slider; odds collapse through March as expected, median rain cessation Apr 22)
-- [ ] TG.3 — Relative productivity per field (NDVI integral vs own history) — **Vinicius**
+- [x] TG.3 — Relative productivity per field (NDVI integral vs own history) — done (Vinicius; `engine/productivity.py` → `data/productivity_T*.csv` + `web/data/productivity.json`, panel box with 2025/26 highlighted vs the field's own mean; relative signal only, feeds TG.4)
 - [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
 - [ ] TG.x — **Pending HTML update pass** (`web/index.html`) — manual browser review still owed: TE.4 polish check, surface TG.1 low-vigor spots more prominently in the page (not just map tooltip), and verify the TG.2 rain gauge renders/reacts correctly — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
@@ -250,6 +250,7 @@ Background: an unbiased research pass over 2024–2026 satellite-ag tools confir
 ---
 
 ## OPTIONAL (only if everything above is done)
+- **Farm-level recommendation (idea, 2026-11-14):** in practice the farmer usually plants ONE succession crop for the whole farm, not a different one per field. Besides the per-field ranking, aggregate across the 7 fields (e.g. area-weighted scores, or "best single strategy if you must pick one for everything") so the result matches how the decision is actually made. Raised by Vinicius; not yet scoped.
 - **"Draw your farm" backend:** FastAPI with an `analyze_field(geojson)` endpoint that runs the same pipeline in fast mode (MODIS + POWER only), deployed on Hugging Face Spaces or Render. The demo never depends on it.
 - **Literature-backed pitch polish:** cite *Agricultura Digital* (Embrapa, 2020) findings in the pitch/slides — e.g. existing Embrapa tools (ZARC Plantio Certo, SatVeg, Agritempo) as prior art we build on, and the ~4.5% climate-driven soybean yield drop (Iizumi & Ramankutty 2016) to back the water-risk axis. See [team-guide.md §9](team-guide.md#9-supporting-literature). Pure copywriting, no new pipeline — only do this after everything above is done.
 

@@ -1,0 +1,429 @@
+{
+ "T1": {
+  "mean_integral": 58.32,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 54.38,
+    "n_days": 91,
+    "complete": true,
+    "deviation_pct": -6.8
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 72.15,
+    "n_days": 111,
+    "complete": true,
+    "deviation_pct": 23.7
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 41.12,
+    "n_days": 69,
+    "complete": true,
+    "deviation_pct": -29.5
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 66.09,
+    "n_days": 103,
+    "complete": true,
+    "deviation_pct": 13.3
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 64.03,
+    "n_days": 91,
+    "complete": true,
+    "deviation_pct": 9.8
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 48.7,
+    "n_days": 73,
+    "complete": true,
+    "deviation_pct": -16.5
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 61.78,
+    "n_days": 85,
+    "complete": true,
+    "deviation_pct": 5.9
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ },
+ "T2": {
+  "mean_integral": 56.54,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 43.54,
+    "n_days": 76,
+    "complete": true,
+    "deviation_pct": -23.0
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 69.07,
+    "n_days": 96,
+    "complete": true,
+    "deviation_pct": 22.2
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 49.71,
+    "n_days": 74,
+    "complete": true,
+    "deviation_pct": -12.1
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 59.2,
+    "n_days": 87,
+    "complete": true,
+    "deviation_pct": 4.7
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 59.19,
+    "n_days": 88,
+    "complete": true,
+    "deviation_pct": 4.7
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 48.69,
+    "n_days": 70,
+    "complete": true,
+    "deviation_pct": -13.9
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 66.37,
+    "n_days": 94,
+    "complete": true,
+    "deviation_pct": 17.4
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ },
+ "T3": {
+  "mean_integral": 62.6,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 60.39,
+    "n_days": 96,
+    "complete": true,
+    "deviation_pct": -3.5
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 71.31,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": 13.9
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 45.24,
+    "n_days": 68,
+    "complete": true,
+    "deviation_pct": -27.7
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 66.07,
+    "n_days": 87,
+    "complete": true,
+    "deviation_pct": 5.5
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 62.54,
+    "n_days": 93,
+    "complete": true,
+    "deviation_pct": -0.1
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 61.73,
+    "n_days": 86,
+    "complete": true,
+    "deviation_pct": -1.4
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 70.95,
+    "n_days": 102,
+    "complete": true,
+    "deviation_pct": 13.3
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ },
+ "T4": {
+  "mean_integral": 60.37,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 60.8,
+    "n_days": 102,
+    "complete": true,
+    "deviation_pct": 0.7
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 65.45,
+    "n_days": 90,
+    "complete": true,
+    "deviation_pct": 8.4
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 52.57,
+    "n_days": 78,
+    "complete": true,
+    "deviation_pct": -12.9
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 60.89,
+    "n_days": 91,
+    "complete": true,
+    "deviation_pct": 0.9
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 56.87,
+    "n_days": 78,
+    "complete": true,
+    "deviation_pct": -5.8
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 56.31,
+    "n_days": 75,
+    "complete": true,
+    "deviation_pct": -6.7
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 69.71,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": 15.5
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ },
+ "T5": {
+  "mean_integral": 66.2,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 66.01,
+    "n_days": 109,
+    "complete": true,
+    "deviation_pct": -0.3
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 66.09,
+    "n_days": 87,
+    "complete": true,
+    "deviation_pct": -0.2
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 53.02,
+    "n_days": 96,
+    "complete": true,
+    "deviation_pct": -19.9
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 70.67,
+    "n_days": 108,
+    "complete": true,
+    "deviation_pct": 6.8
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 65.08,
+    "n_days": 96,
+    "complete": true,
+    "deviation_pct": -1.7
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 69.5,
+    "n_days": 103,
+    "complete": true,
+    "deviation_pct": 5.0
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 73.03,
+    "n_days": 106,
+    "complete": true,
+    "deviation_pct": 10.3
+   }
+  ]
+ },
+ "T6": {
+  "mean_integral": 63.88,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 58.78,
+    "n_days": 94,
+    "complete": true,
+    "deviation_pct": -8.0
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 71.17,
+    "n_days": 99,
+    "complete": true,
+    "deviation_pct": 11.4
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 56.79,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": -11.1
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 65.16,
+    "n_days": 92,
+    "complete": true,
+    "deviation_pct": 2.0
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 62.46,
+    "n_days": 98,
+    "complete": true,
+    "deviation_pct": -2.2
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 64.83,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": 1.5
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 67.96,
+    "n_days": 100,
+    "complete": true,
+    "deviation_pct": 6.4
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ },
+ "T7": {
+  "mean_integral": 63.42,
+  "n_seasons": 7,
+  "seasons": [
+   {
+    "season": "2019/20",
+    "ndvi_integral": 58.76,
+    "n_days": 92,
+    "complete": true,
+    "deviation_pct": -7.3
+   },
+   {
+    "season": "2020/21",
+    "ndvi_integral": 74.55,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": 17.6
+   },
+   {
+    "season": "2021/22",
+    "ndvi_integral": 52.14,
+    "n_days": 81,
+    "complete": true,
+    "deviation_pct": -17.8
+   },
+   {
+    "season": "2022/23",
+    "ndvi_integral": 65.5,
+    "n_days": 91,
+    "complete": true,
+    "deviation_pct": 3.3
+   },
+   {
+    "season": "2023/24",
+    "ndvi_integral": 66.48,
+    "n_days": 97,
+    "complete": true,
+    "deviation_pct": 4.8
+   },
+   {
+    "season": "2024/25",
+    "ndvi_integral": 56.54,
+    "n_days": 76,
+    "complete": true,
+    "deviation_pct": -10.8
+   },
+   {
+    "season": "2025/26",
+    "ndvi_integral": 69.94,
+    "n_days": 103,
+    "complete": true,
+    "deviation_pct": 10.3
+   },
+   {
+    "season": "2026/27",
+    "ndvi_integral": null,
+    "n_days": null,
+    "complete": false,
+    "deviation_pct": null
+   }
+  ]
+ }
+}

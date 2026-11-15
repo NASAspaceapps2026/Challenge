@@ -123,6 +123,13 @@ tailwind.config = {
         Média dos 7 talhões: <strong id="replay-mean">—</strong> de erro.</p>
     </div>
 
+    <div id="prod-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
+      <span class="font-extrabold text-amber-800 gloss" title="Soma do NDVI diário entre emergência e colheita — proxy de biomassa acumulada. Sinal RELATIVO: comparamos o talhão só com o histórico dele mesmo; não convertemos em sacas/ha.">🌱 Produtividade relativa (biomassa por satélite)</span>
+      <p class="mt-1" id="prod-headline">—</p>
+      <div id="prod-history" class="flex flex-wrap gap-1.5 mt-2"></div>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Sinal relativo (integral de NDVI vs média do próprio talhão) — não é estimativa de sacas/ha.</p>
+    </div>
+
     <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
         <span class="text-[10px] font-semibold text-slate-500 block">Área</span>
@@ -285,7 +292,7 @@ async function loadData() {
       return await r.json();
     } catch (e) { return fallback; }
   };
-  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds] =
+  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds, productivity] =
     await Promise.all([
       get("fields.json", { features: [] }),
       get("ndvi.json", {}),
@@ -297,8 +304,9 @@ async function loadData() {
       get("phenology.json", {}),
       get("spots.json", { type: "FeatureCollection", features: [] }), // TG.1
       get("rain_odds.json", null), // TG.2 — climatologia, sem forecast
+      get("productivity.json", {}), // TG.3 — integral NDVI vs histórico do talhão (sinal relativo)
     ]);
-  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds };
+  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds, productivity };
 }
 
 /* ------------------------------------------------ mapa */
@@ -611,6 +619,8 @@ function selectField(id) {
     box.classList.add("hidden");
   }
 
+  renderProductivity(id);
+
   const feat = (S.data.fields.features || []).find(f => f.properties.id === id);
   set("field-area", feat && feat.properties.area_ha ? Math.round(feat.properties.area_ha) + " ha" : "—");
   set("field-slope", feat && feat.properties.slope_deg != null ? feat.properties.slope_deg.toFixed(1) + "°" : "—");
@@ -619,6 +629,40 @@ function selectField(id) {
 
   renderNdviChart();
   renderCards();
+}
+
+/* TG.3 — relative productivity: NDVI integral vs the field's own history */
+function renderProductivity(id) {
+  const box = document.getElementById("prod-box");
+  const p = (S.data.productivity || {})[id];
+  const HIGHLIGHT = "2025/26"; // última safra completa — comparada vs normal
+  if (!p || !p.seasons || !p.seasons.length) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+
+  const cur = p.seasons.find(s => s.season === HIGHLIGHT && s.complete);
+  const head = document.getElementById("prod-headline");
+  if (cur) {
+    const d = cur.deviation_pct;
+    const word = d < 0 ? "menos" : "mais";
+    const cls = d < -5 ? "text-rose-700" : d > 5 ? "text-agro-700" : "text-slate-800";
+    head.innerHTML = `Na safra <strong>${HIGHLIGHT}</strong>, ${id} acumulou
+      <strong class="${cls}">${Math.abs(d).toFixed(1)}% ${word}</strong> biomassa (NDVI) que
+      sua média de <strong>${p.n_seasons} safras</strong>${Math.abs(d) <= 5 ? " — dentro do normal" : ""}.`;
+  } else {
+    head.textContent = "Safra em andamento — integral ainda incompleta.";
+  }
+
+  document.getElementById("prod-history").innerHTML = p.seasons.map(s => {
+    if (!s.complete)
+      return `<span class="px-2 py-1 rounded-lg border border-dashed border-slate-300 text-slate-400 text-[10px] font-bold">${s.season} em campo</span>`;
+    const d = s.deviation_pct;
+    const hl = s.season === HIGHLIGHT;
+    const tone = d < -5 ? "bg-rose-100 text-rose-800 border-rose-200"
+               : d > 5 ? "bg-emerald-100 text-emerald-800 border-emerald-200"
+               : "bg-slate-100 text-slate-600 border-slate-200";
+    return `<span class="px-2 py-1 rounded-lg border text-[10px] font-bold ${tone} ${hl ? "ring-2 ring-amber-400" : ""}"
+      title="Integral NDVI ${s.ndvi_integral} em ${s.n_days} dias">${s.season}: ${d > 0 ? "+" : ""}${d.toFixed(0)}%</span>`;
+  }).join("");
 }
 
 const chipClass = active =>
