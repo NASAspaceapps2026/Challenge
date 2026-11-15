@@ -6,11 +6,14 @@ information available on FREEZE_DATE (2025-12-15), and the harvest actually
 detected by TB.2 later in the season is the validation target (done-when:
 P50 within <=10 days of it).
 
-Model -- rainfall-adjusted cycle duration:
+Model -- rainfall- and sowing-date-adjusted cycle duration:
   1. For every completed historical season (through 2024/25, all fields
-     pooled), fit a line: emergence->harvest duration (days) as a function
-     of Sep 1 -> FREEZE-day rainfall of that spring. Wet springs shorten
-     the NDVI-detected cycle, dry springs lengthen it (r ~ -0.7 here).
+     pooled), fit a linear model: emergence->harvest duration (days) as a
+     function of (a) Sep 1 -> FREEZE-day rainfall of that spring (wet
+     springs shorten the NDVI-detected cycle) and (b) emergence day of
+     year (later emergence -> shorter cycle). Both predictors are known
+     at the freeze date. Leave-one-season-out over 2019-2026 picked this
+     over rain alone (mean |error| 9.1 vs 9.6 d).
   2. Predict the target season's duration from its own spring rainfall,
      re-centered by the field's median historical residual (a field with
      fewer than MIN_SEASONS completed seasons uses the pooled median).
@@ -62,7 +65,7 @@ def main():
     fields = [f["properties"]["id"] for f in json.loads(FIELDS_PATH.read_text())["features"]]
 
     # Historical training records: completed seasons strictly before the target
-    records = []  # (field, duration_days, spring_rain_mm)
+    records = []  # (field, duration_days, spring_rain_mm, emergence_doy)
     targets = {}  # field -> (emergence, actual_harvest or None)
     for field_id in fields:
         path = DATA_DIR / f"phenology_{field_id}.csv"
@@ -75,19 +78,26 @@ def main():
                 continue
             year = int(r.season.split("/")[0])
             if r.season < TARGET_SEASON and pd.notna(r.harvest_date):
-                duration = (pd.Timestamp(r.harvest_date) - pd.Timestamp(r.emergence_date)).days
-                records.append((field_id, duration, spring_rain(rain, year)))
+                emergence = pd.Timestamp(r.emergence_date)
+                duration = (pd.Timestamp(r.harvest_date) - emergence).days
+                records.append(
+                    (field_id, duration, spring_rain(rain, year), emergence.day_of_year)
+                )
             elif r.season == TARGET_SEASON:
                 actual = pd.Timestamp(r.harvest_date) if pd.notna(r.harvest_date) else None
                 targets[field_id] = (pd.Timestamp(r.emergence_date), actual)
 
-    hist = pd.DataFrame(records, columns=["field", "duration", "rain"])
-    slope, intercept = np.polyfit(hist["rain"], hist["duration"], 1)
-    hist["residual"] = hist["duration"] - (slope * hist["rain"] + intercept)
+    hist = pd.DataFrame(records, columns=["field", "duration", "rain", "doy"])
+    X = np.column_stack([hist["rain"], hist["doy"], np.ones(len(hist))])
+    (b_rain, b_doy, intercept), *_ = np.linalg.lstsq(
+        X, hist["duration"].to_numpy(dtype=float), rcond=None
+    )
+    hist["residual"] = hist["duration"] - X @ np.array([b_rain, b_doy, intercept])
     pooled_centered = (hist["residual"] - hist["residual"].median()).to_numpy()
     print(
-        f"Fit on {len(hist)} field-seasons: duration = {slope:.3f} * spring_rain_mm"
-        f" + {intercept:.1f} (residual sd {hist['residual'].std():.1f} d)\n"
+        f"Fit on {len(hist)} field-seasons: duration = {b_rain:.3f} * spring_rain_mm"
+        f" + {b_doy:.3f} * emergence_doy + {intercept:.1f}"
+        f" (residual sd {hist['residual'].std():.1f} d)\n"
     )
 
     target_year = int(TARGET_SEASON.split("/")[0])
@@ -99,7 +109,9 @@ def main():
         borrowed = len(field_resid) < MIN_SEASONS
         center_resid = hist["residual"].median() if borrowed else field_resid.median()
 
-        center = slope * target_rain + intercept + center_resid
+        center = (
+            b_rain * target_rain + b_doy * emergence.day_of_year + intercept + center_resid
+        )
         durations = center + pooled_centered  # one candidate per historical field-season
         p10_d, p50_d, p90_d = np.percentile(durations, [10, 50, 90])
         p10, p50, p90 = (
