@@ -17,7 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, "data")
 WEB = os.path.join(ROOT, "web", "data")
 
-FIELDS = [f"T{i}" for i in range(1, 8)]
+with open(os.path.join(DATA, "fields.geojson"), encoding="utf-8") as _f:
+    FIELDS = [feat["properties"]["id"] for feat in json.load(_f)["features"]]
 
 
 def load_ndvi(field):

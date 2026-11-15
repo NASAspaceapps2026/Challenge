@@ -52,6 +52,12 @@ Z_THRESHOLD = -1.0   # pixel counts as "low" when z < -1 within its field
 MIN_SEASONS = 3      # recurrent = low in >= 3 seasons
 MIN_AREA_HA = 0.2    # drop vector slivers smaller than this
 SCALE = 10           # Sentinel-2 NDVI resolution (m)
+EDGE_BUFFER_M = 10   # shrink each field inward before analysis: the 10 m
+                     # boundary pixel is always a crop/road mix, so even a
+                     # perfectly drawn polygon needs ~1 px trimmed off
+OPEN_RADIUS_PX = 1   # morphological opening radius: erases linear features
+                     # 1-2 px wide (tractor tracks, road slivers) while
+                     # keeping compact patches (reboleiras)
 
 
 def mask_s2(image):
@@ -91,13 +97,23 @@ def season_low_mask(geom, start, end):
 
 def field_spots(field_id, geom):
     """Vectorized recurrent-low zones for one field -> list of GeoJSON features."""
+    # Shrink inward so border roads (and polygon-drawing error) are excluded
+    # both from the field mean/stddev and from the flagged zones.
+    geom = geom.buffer(-EDGE_BUFFER_M, 1)
     low_masks = [season_low_mask(geom, s, e) for _, s, e in SEASONS]
     low_count = ee.ImageCollection(low_masks).sum().rename("seasons_low")
     valid_count = ee.ImageCollection(
         [m.mask().rename("valid") for m in low_masks]
     ).sum()
 
-    recurrent = low_count.gte(MIN_SEASONS)
+    # Opening (erode then dilate) removes 1-2 px wide linear features --
+    # tractor tracks and road slivers -- but keeps compact patches.
+    recurrent = (
+        low_count.gte(MIN_SEASONS)
+        .focalMin(radius=OPEN_RADIUS_PX, units="pixels")
+        .focalMax(radius=OPEN_RADIUS_PX, units="pixels")
+        .selfMask()
+    )
     vectors = (
         low_count.updateMask(recurrent)
         .toInt()

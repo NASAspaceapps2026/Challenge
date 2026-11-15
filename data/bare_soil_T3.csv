@@ -1,5 +1,5 @@
 strategy,year,bare_days
-current_corn,2019,101
+current_corn,2019,100
 current_corn,2020,112
 current_corn,2021,112
 current_corn,2022,121
@@ -15,7 +15,7 @@ corn_brachiaria,2023,11
 corn_brachiaria,2024,11
 corn_brachiaria,2025,10
 corn_brachiaria,2026,11
-sorghum_millet,2019,86
+sorghum_millet,2019,85
 sorghum_millet,2020,95
 sorghum_millet,2021,95
 sorghum_millet,2022,103
