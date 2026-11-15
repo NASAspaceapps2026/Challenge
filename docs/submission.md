@@ -49,6 +49,25 @@ https://nasaspaceapps2026.github.io/Challenge/
 
 ## Detailed Description
 
+Brazil harvests the largest soybean crop on Earth, about 180 million tonnes in
+2025/26, and the state of Mato Grosso alone produces more than 50 million of
+them, more than any country except the United States, Argentina and Brazil
+itself. Almost all of it is rainfed. When the soybean comes off in January and
+February, the same land immediately hosts Brazil's second-crop corn, the
+"safrinha", and Mato Grosso again leads with 49% of the national safrinha
+production. This double-crop system feeds a large share of the world's grain
+trade, and it hangs on one narrow hinge: the few weeks of rain left between the
+soybean harvest and the dry season.
+
+Every February, each farmer decides what goes into that window. Sow corn too
+late and it flowers into drought; repeat corn year after year and the soil
+spends the dry season bare while nematodes and the corn leafhopper build up.
+The information needed to decide well exists, but it is scattered: satellites
+observe every field, decades of rainfall are public, and the agronomic
+literature is clear about rotation benefits. What is missing is a tool that
+brings all of it down to the scale where the decision is actually made, the
+individual field. That is what Field Shift does.
+
 The farmer selects a field on a satellite map. The page shows the predicted
 harvest window as three dates, P10, P50 and P90: there is a 10% chance the
 harvest happens before the P10 date, 50% before P50, and 90% before P90. P50 is
@@ -126,10 +145,14 @@ the farmer's slider settings, computed client-side in plain JavaScript.
 The immediate benefit is a better-timed succession decision: the tool shows
 each field's real planting window and the historical odds of each option, so
 the farmer can avoid sowing corn into a window where it fails in most years, or
-discover that a cover crop fits where a cash crop does not. The longer-term
-impact is on soil and pest pressure, and the method generalizes: every input is
-a public satellite or climate product, so the same pipeline can be run for any
-rainfed grain region in the world.
+discover that a cover crop fits where a cash crop does not. At Mato Grosso's
+scale, where millions of hectares make this same call in the same few weeks,
+even marginal improvements in sowing timing and rotation choice move national
+production and reduce losses like the US$6.5 billion a year already attributed
+to the corn leafhopper alone. The longer-term impact is on the soil that
+sustains the system, and the method generalizes: every input is a public
+satellite or climate product, so the same pipeline can be run for any rainfed
+grain region in the world.
 
 The project was developed with Google Earth Engine (JavaScript and Python) for
 satellite exports, Python with pandas and SciPy for NDVI smoothing, phenology
