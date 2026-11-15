@@ -144,12 +144,19 @@ prediction curve).
 
 ## Use of Artificial Intelligence
 
-We used Anthropic's Claude (via Claude Code) as a programming assistant to write
-and review code and draft documentation. All agronomic parameters come from the
-cited public sources (FAO-56, Embrapa, ZARC, NOAA), all satellite/climate
-processing is our own open code in the repo, and every number shown in the tool is
-reproducible by running the scripts. No generative AI imagery; satellite imagery
-basemap © Esri.
+We used Anthropic's Claude (via Claude Code) in two ways, both under team
+direction and review. First, as a programming assistant: parts of the Python
+pipeline, the JavaScript scoring code and the site were written or reviewed with
+Claude, and the repository records this in every commit's metadata
+(Co-Authored-By trailer). Second, as a writing assistant: the project
+documentation and the text on this project page were drafted with Claude and
+edited by the team.
+
+No AI-generated images, video or audio were used; the satellite basemap is
+(c) Esri. The tool itself contains no AI or machine-learning component: it is a
+deterministic pipeline. All agronomic parameters come from the cited public
+sources (FAO-56, Embrapa, ZARC, NOAA), and every number shown in the tool is
+reproducible by running the open scripts in the repository.
 
 ## References
 
