@@ -126,6 +126,16 @@ known agronomic behavior. Finally, the user shaped the interface: it is in
 Portuguese, built for a farmer on a phone, and avoids technical vocabulary
 except where a tooltip can explain it.
 
+Regarding the use of artificial intelligence: the team used Anthropic's Claude
+as an assistant for coding and for drafting text, always under team direction
+and review. Parts of the Python pipeline, the JavaScript scoring code and the
+site were written or reviewed with Claude, recorded in every repository commit's
+metadata, and the documentation and the text on this page were drafted with
+Claude and edited by the team. No AI-generated images, video or audio were used,
+and the tool itself contains no AI component: it is a deterministic pipeline
+whose every number is reproducible from the open scripts and cited public
+sources.
+
 ## NASA Data
 
 - **MODIS (MOD09GQ/MOD13, Terra/Aqua)** — daily NDVI to gap-fill cloudy Sentinel-2
@@ -143,6 +153,12 @@ sowing windows); IMEA (weekly harvest progress used to validate the regional
 prediction curve).
 
 ## Use of Artificial Intelligence
+
+**Where to put this:** the platform's SI checkboxes are data-collection only and
+hidden from judges. Judges only see what is inside the project page itself, so
+paste the paragraph below as the FINAL paragraph of Project Details (after
+"...except where a tooltip can explain it."). Keep it here too in case the form
+offers a dedicated visible AI field.
 
 We used Anthropic's Claude (via Claude Code) in two ways, both under team
 direction and review. First, as a programming assistant: parts of the Python
