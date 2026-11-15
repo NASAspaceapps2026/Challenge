@@ -170,14 +170,18 @@ rather than single dates, every strategy card lists what the data does not
 cover, and a fixed notice states that the tool supports the farmer's agronomist
 and does not replace them.
 
-The team considered three main factors. Scope was cut deliberately to one crop
-system, one region and seven real fields, so that every number shown could be
-computed and verified within the event. Results were validated instead of
+The team considered three main factors. Scope was cut deliberately: one crop
+system and one region, represented by a demonstration farm of seven real,
+rainfed fields near Sorriso, in the heart of Mato Grosso's grain belt, so that
+every number shown could be computed and verified within the event. Results were validated instead of
 assumed: the harvest model was tested by replaying the 2025/26 season with data
 frozen in December, and the water balance was accepted only after it reproduced
 the behavior documented in the agronomic literature cited above. Finally, the
-user shaped the interface: it is in Portuguese, built for a farmer on a phone,
-and avoids technical vocabulary except where a tooltip can explain it.
+user shaped the interface: it is built for a farmer on a phone, in plain
+language that avoids technical vocabulary except where a tooltip can explain
+it. The demonstration site is presented in English for the international
+challenge; a Portuguese version for the Brazilian farmer is the natural first
+localization.
 
 Regarding the use of artificial intelligence: the team used Anthropic's Claude
 as an assistant for coding and for drafting text, always under team direction
