@@ -1,4 +1,4 @@
-# Data Sources and Parameter Justification (crops_params.md)
+# Data Sources and Parameter Justification (crops_params.csv)
 
 **Context:** Data adapted for modeling the second crop (Safrinha) and cover crops in the state of Mato Grosso (municipalities of Sorriso / Lucas do Rio Verde).
 
