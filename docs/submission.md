@@ -174,6 +174,65 @@ deterministic pipeline. All agronomic parameters come from the cited public
 sources (FAO-56, Embrapa, ZARC, NOAA), and every number shown in the tool is
 reproducible by running the open scripts in the repository.
 
+## Scientific basis (claim -> source; use in Project Details or References)
+
+Each design choice in the project is supported by published literature:
+
+Satellite detection of crop stages. Detecting emergence, peak and harvest from
+smoothed vegetation-index time series is an established method: Sakamoto et al.
+(2005, Remote Sensing of Environment 96:366-374) dated rice phenology from MODIS
+with errors of 9-12 days, and Sakamoto et al. (2010, RSE 114:2146-2159) reached
+3-7 day accuracy for maize and soybean in the US Corn Belt. Our per-field
+phenology engine follows the same principle.
+
+NDVI smoothing. The Savitzky-Golay filter we apply is the standard method for
+reconstructing high-quality NDVI series under cloud contamination: Chen et al.
+(2004, Remote Sensing of Environment 91:332-344), one of the most cited papers
+in the field.
+
+Water balance and crop coefficients. Crop water demand per growth stage uses the
+FAO Irrigation and Drainage Paper 56 methodology (Allen et al., 1998). Our daily
+soil-water bucket mirrors the logic of Brazil's official climate-risk zoning
+(ZARC), which defines sowing windows from simulated water balance and
+water-satisfaction indices (Embrapa ZARC methodology publications; MAPA).
+
+Sowing-date risk for second-crop corn. Embrapa's safrinha literature documents
+that yield potential falls and drought/frost risk rises as corn sowing is
+delayed past the recommended window, which is exactly the gradient our success
+table reproduces (Embrapa Milho e Sorgo, zoneamento and milho safrinha
+technical publications).
+
+ENSO filter. Heinemann et al. (2021, International Journal of Climatology,
+doi 10.1002/joc.6684) show that ENSO phase changes the length and timing of the
+sowing window in Central Brazil and recommend adjusting cropping calendars per
+ENSO phase; our El Nino / La Nina filter implements that recommendation using
+NOAA's ONI classification.
+
+Crotalaria against nematodes. Debiasi et al. (2016, Pesquisa Agropecuaria
+Brasileira) found off-season Crotalaria spectabilis, alone or with ADR 300
+pearl millet, the most suitable option to reduce Pratylenchus brachyurus
+populations and soybean damage in Mato Grosso; Cruz et al. (2020, Ciencia
+Rural) confirmed suppression by sole-cropped C. spectabilis and C. ochroleuca.
+This is the basis of the crotalaria card and of the cultivar caveat on millet.
+
+Corn leafhopper and the green bridge. Pozebon et al. (2022, Journal of Economic
+Entomology, doi 10.1093/jee/toac147) attribute the corn-stunt outbreak in
+Brazil to overlapping corn seasons that sustain Dalbulus maidis year-round, and
+list breaking that bridge among the core management measures; Embrapa estimates
+annual losses of US$6.5 billion (Crop Protection). This supports the pest score
+that penalizes corn-after-corn and rewards a corn-free season.
+
+Corn-brachiaria intercropping. Embrapa trials show the consortium maintains
+safrinha corn yield while adding straw, and soybean sown over consortium
+residue outyielded soybean over sole-corn residue by about 7 sc/ha; Urochloa
+ruziziensis is indicated for the consortium due to lower initial
+competitiveness (Embrapa Milho e Sorgo / Agropecuaria Oeste publications).
+
+Bare soil and erosion. Field studies in Brazil show soil and water losses fall
+sharply with residue cover: roughly half the runoff at 90% cover versus bare
+soil (Bragantia, 2015), with measurable protection starting around 30% cover.
+This justifies bare-soil days as our central soil-degradation indicator.
+
 ## References
 
 - Allen, R. et al. (1998). *FAO Irrigation & Drainage Paper 56* — crop
