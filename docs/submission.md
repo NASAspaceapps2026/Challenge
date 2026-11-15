@@ -36,9 +36,8 @@ pest cycle effects. The farmer sets the weight given to income, soil protection
 and risk.
 
 The interface is a satellite map of seven demonstration fields near Sorriso, with
-ranked strategy cards per field. It runs entirely in the browser, works on a
-phone, and states explicitly where the data ends and the agronomist's judgment
-begins.
+ranked strategy cards per field. It runs in the browser, works on a phone, and
+states where the data ends and the agronomist's judgment begins.
 
 ## Project Demo
 
