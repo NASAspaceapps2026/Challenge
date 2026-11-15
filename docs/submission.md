@@ -27,8 +27,8 @@ by experience, without data specific to each field.
 Field Shift supports that decision with satellite data. The tool reads each
 field's NDVI history from NASA MODIS and ESA Sentinel-2 and predicts the soybean
 harvest date as a P10, P50 and P90 range. This range measures the planting window
-that actually remains in the season. The tool then evaluates four succession
-strategies: second-crop corn, which is the current practice, corn with brachiaria,
+remaining in the season. The tool then evaluates four succession
+strategies: second-crop corn, the current practice, corn with brachiaria,
 sorghum or millet, and a crotalaria cover crop. Each strategy is tested against
 26 years of NASA POWER and GPM rainfall in a daily water balance, scored on
 bare-soil days observed by satellite, and adjusted for slope from SRTM and for
@@ -50,46 +50,56 @@ https://nasaspaceapps2026.github.io/Challenge/
 
 ## Detailed Description
 
-**What it does.** The farmer picks a field on a satellite map. The page shows the
-predicted harvest window (P10/P50/P90), the field's NDVI life-curve with that
-window drawn on it, and four ranked strategy cards for what to plant after the
-soybean. Sliders and checkboxes ("what if harvest slips 10 days?", El Niño/La Niña
-filter, income vs. soil vs. risk priorities, "I have cattle", "corn contract",
-known pests) re-rank the cards instantly.
+The farmer selects a field on a satellite map. The page shows the predicted
+harvest window (P10, P50, P90), the field's NDVI curve with that window marked,
+and four ranked strategy cards for what to plant after the soybean. The controls
+re-rank the cards instantly: a slider for harvest delay, an El Niño and La Niña
+filter, priority weights for income, soil protection and risk, and checkboxes for
+constraints such as owning cattle, holding a corn contract, or known pest
+presence.
 
-**How it works — pipeline (all open source in the repo):**
+The pipeline has four stages. All code is open source in the repository.
 
-1. *Harvest prediction.* Per field, we fuse Sentinel-2 (10 m) and MODIS (daily)
-   NDVI from 2019 on, smooth with a Savitzky–Golay filter, and detect emergence,
-   peak and harvest dates for every past season. The field's own
-   emergence→harvest duration distribution, adjusted by growing degree-days from
-   NASA POWER temperatures, yields P10/P50/P90 harvest dates for the current
-   season. Our December-frozen replay of the 2025/26 season passed the ≤10-day
-   checkpoint against the satellite-detected harvest.
-2. *What fits in the window.* For each candidate crop × sowing date (Jan–Mar,
-   5-day grid) × each year 2000–2025, we simulate a daily 100 mm soil-water
-   bucket: NASA POWER + GPM rainfall in, crop demand out (radiation-based ET0 ×
-   FAO-56 stage coefficients). A year fails if water stress at the crop's
-   critical (flowering) stage exceeds its tolerance. The share of non-failing
-   years is the success probability — also split by El Niño/La Niña/neutral
-   (NOAA ONI). The table reproduces agronomic common sense: corn sown Feb 1 ≈
-   77% success, collapsing to ~0% by March, while millet still holds ~70% in
+1. Harvest prediction. For each field, Sentinel-2 (10 m) and MODIS (daily) NDVI
+   from 2019 onward are merged, smoothed with a Savitzky-Golay filter, and used
+   to detect emergence, peak and harvest dates for every past season. The
+   distribution of the field's own emergence-to-harvest durations, adjusted by
+   growing degree-days computed from NASA POWER temperatures, produces the P10,
+   P50 and P90 harvest dates for the current season. In a replay of the 2025/26
+   season with data frozen in December, the P50 prediction fell within 10 days
+   of the harvest date later detected by satellite.
+
+2. Climate risk. For each candidate crop, each sowing date from January to March
+   on a 5-day grid, and each year from 2000 to 2025, the tool simulates a daily
+   100 mm soil water balance: NASA POWER and GPM rainfall in, crop demand out,
+   with reference evapotranspiration derived from radiation and FAO-56 stage
+   coefficients. A year counts as a failure when water stress during the crop's
+   flowering stage exceeds its tolerance. The share of successful years is the
+   success probability, also computed separately for El Niño, La Niña and
+   neutral years classified by the NOAA ONI index. The results match agronomic
+   experience: corn sown on February 1 succeeds in 77% of historical years,
+   close to 0% by March, while millet still succeeds in about 70% of years in
    mid-March.
-3. *Soil and pests.* Bare-soil days = dry-season days with smoothed NDVI < 0.30
-   (observed ~100–110 days/yr under the current rotation). Slope per field from
-   SRTM gives erosion exposure. An Embrapa-sourced table maps each crop's effect
-   on nematodes, corn leafhopper and fall armyworm (e.g., crotalaria suppresses
-   nematodes; corn safrinha is the leafhopper's green bridge).
-4. *Scoring.* score = w₁·income + w₂·soil_protection + w₃·(1−risk), normalized
-   0–100, computed client-side in plain JS. The weights are the farmer's sliders.
 
-**Architecture.** Python scripts produce small CSV/JSON tables committed to the
-repo; the site is static HTML/CSS/JS on GitHub Pages fetching those tables — no
-server, nothing to break during a demo.
+3. Soil and pests. Bare-soil days are dry-season days with smoothed NDVI below
+   0.30. The fields show 100 to 110 bare days per year under the current
+   rotation. Slope from SRTM provides the erosion component. A table built from
+   Embrapa sources maps each crop's effect on nematodes, corn leafhopper and
+   fall armyworm; crotalaria suppresses nematodes, and second-crop corn
+   sustains the leafhopper population between seasons.
 
-**Honesty by design.** Predictions are shown as ranges, every card lists
-"what we don't know", and a fixed notice says the tool supports — never replaces —
-the farmer's agronomist.
+4. Scoring. Each strategy receives a score combining income potential, soil
+   protection and success probability, normalized to a 0-100 scale and weighted
+   by the farmer's slider settings. The computation runs client-side in plain
+   JavaScript.
+
+Python scripts produce small CSV and JSON tables committed to the repository.
+The site is static HTML, CSS and JavaScript hosted on GitHub Pages and fetches
+those tables directly. There is no server.
+
+Predictions are presented as ranges, each card lists its information gaps, and a
+fixed notice states that the tool supports the farmer's agronomist and does not
+replace them.
 
 ## NASA Data
 
