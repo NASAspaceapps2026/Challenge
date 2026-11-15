@@ -210,9 +210,9 @@ tailwind.config = {
         <button data-scen="all" class="scen-btn">All years</button>
         <button data-scen="nina" class="scen-btn">La Niña</button>
         <button data-scen="nino" class="scen-btn">El Niño</button>
-        <button data-scen="neutral" class="scen-btn">Neutral</button>
       </div>
-      <p class="text-[11px] text-slate-500 mt-2">Filters the history by ENSO (NOAA ONI index) — drives both the cards and the rain chart</p>
+      <p class="text-[11px] text-slate-500 mt-2">Filters the history by ENSO (NOAA ONI index) — drives both the cards and the rain chart.
+        Neutral years (n=5) are counted only inside <em>All years</em>: too few to split on their own.</p>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -327,10 +327,14 @@ const actualHarvest = id => {
   return r && r.harvest ? r.harvest : null;
 };
 
+const DATA_VERSION = "tg8";  // bump whenever a web/data/*.json schema changes
+
 async function loadData() {
   const get = async (name, fallback) => {
     try {
-      const r = await fetch("data/" + name);
+      // Cache-bust: GitHub Pages serves data/*.json with a long max-age, so a
+      // returning visitor can pair fresh HTML with a stale JSON of the old shape.
+      const r = await fetch("data/" + name + "?v=" + DATA_VERSION, { cache: "no-cache" });
       if (!r.ok) throw new Error(name);
       return await r.json();
     } catch (e) { return fallback; }
@@ -470,10 +474,14 @@ function renderRainGauge(sowingISO, scenario) {
   if (!ro) { chartEl.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No climatology data (rain_odds.json).</p>'; return; }
 
   // Same ENSO split as the strategy cards (NOAA ONI DJF, see engine/water_balance.py).
-  const scen = (ro.probs && ro.probs[scenario]) ? scenario : "all";
-  const nScen = (ro.scenario_n || {})[scen] ?? ro.n_years;
+  // A pre-TG.8 rain_odds.json is keyed by crop, not by scenario (probs.corn, not
+  // probs.all.corn). Rather than blanking the chart, fall back to the pooled curve.
+  const scenarioKeyed = !!(ro.probs && ro.probs.all);
+  const scen = scenarioKeyed && ro.probs[scenario] ? scenario : "all";
+  const nScen = (scenarioKeyed ? (ro.scenario_n || {})[scen] : null) ?? ro.n_years;
   const minN = ro.min_scenario_years ?? 8;
-  const probs = ro.probs[scen], cessation = ro.cessation[scen];
+  const probs = scenarioKeyed ? ro.probs[scen] : ro.probs;
+  const cessation = scenarioKeyed ? ro.cessation[scen] : ro.cessation;
 
   sampleEl.textContent =
     `Historical odds from the ${nScen} ${SCEN_LABEL[scen] || scen} since 2000` +
