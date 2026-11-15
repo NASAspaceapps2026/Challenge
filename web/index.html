@@ -212,7 +212,7 @@ tailwind.config = {
         <button data-scen="nino" class="scen-btn">El Niño</button>
         <button data-scen="neutral" class="scen-btn">Neutral</button>
       </div>
-      <p class="text-[11px] text-slate-500 mt-2">Filters the 26-year history (NOAA ONI index)</p>
+      <p class="text-[11px] text-slate-500 mt-2">Filters the history by ENSO (NOAA ONI index) — drives both the cards and the rain chart</p>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
@@ -243,11 +243,12 @@ tailwind.config = {
       <div class="p-2 bg-sky-100 text-sky-700 rounded-xl"><i data-lucide="cloud-rain" class="w-6 h-6"></i></div>
       <div>
         <h3 class="text-lg font-extrabold text-slate-900">Rain still left in the season</h3>
-        <p class="text-xs text-slate-500">In how many of the last 27 years did it rain enough for each crop, sown on each date? Move the delay slider above and the dotted line follows.</p>
+        <p class="text-xs text-slate-500">In how many past years did it rain enough for each crop, sown on each date? The Climate scenario buttons and the delay slider above both drive this chart.</p>
       </div>
     </div>
     <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Historical odds (2000–2026, NASA POWER), not a forecast</span>
   </div>
+  <p id="rain-sample-note" class="text-[11px] font-semibold text-slate-500 mt-1"></p>
   <div id="rain-gauge-chart" class="w-full overflow-x-auto"></div>
   <div id="rain-gauge-readout" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3"></div>
   <p id="rain-cessation-note" class="text-xs text-slate-600 mt-3 leading-relaxed"></p>
@@ -345,7 +346,7 @@ async function loadData() {
       get("strategies.json", null), // TD.2 — pode ainda não existir
       get("phenology.json", {}),
       get("spots.json", { type: "FeatureCollection", features: [] }), // TG.1
-      get("rain_odds.json", null), // TG.2 — climatologia, sem forecast
+      get("rain_odds.json", null), // TG.2/TG.8 — climatology per ENSO scenario, no forecast
       get("productivity.json", {}), // TG.3 — integral NDVI vs histórico do talhão (sinal relativo)
     ]);
   S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots, rainOdds, productivity };
@@ -458,10 +459,47 @@ function rainIndexFor(iso) { // nearest index on the 2026 Jan-Apr axis
   return i;
 }
 
-function renderRainGauge(sowingISO) {
+const SCEN_LABEL = { all: "years", nina: "La Nina years", nino: "El Nino years", neutral: "Neutral years" };
+
+function renderRainGauge(sowingISO, scenario) {
   const ro = S.data.rainOdds;
   const chartEl = document.getElementById("rain-gauge-chart");
+  const sampleEl = document.getElementById("rain-sample-note");
+  const readoutEl = document.getElementById("rain-gauge-readout");
+  const noteEl = document.getElementById("rain-cessation-note");
   if (!ro) { chartEl.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No climatology data (rain_odds.json).</p>'; return; }
+
+  // Same ENSO split as the strategy cards (NOAA ONI DJF, see engine/water_balance.py).
+  const scen = (ro.probs && ro.probs[scenario]) ? scenario : "all";
+  const nScen = (ro.scenario_n || {})[scen] ?? ro.n_years;
+  const minN = ro.min_scenario_years ?? 8;
+  const probs = ro.probs[scen], cessation = ro.cessation[scen];
+
+  sampleEl.textContent =
+    `Historical odds from the ${nScen} ${SCEN_LABEL[scen] || scen} since 2000` +
+    (scen === "all" ? " (not filtered by ENSO)." : ", classified by the NOAA ONI DJF index.");
+
+  // Too few years to draw a curve: n=5 moves in 20% steps. Show the numbers, not a shape.
+  if (nScen < minN) {
+    chartEl.innerHTML = `<div class="border border-amber-300 bg-amber-50 rounded-xl p-4 my-2 text-xs text-amber-900 leading-relaxed">
+      <strong>Sample too small to plot.</strong> Only ${nScen} ${SCEN_LABEL[scen] || scen} since 2000 match this scenario,
+      so a probability built on them moves in steps of ${Math.round(100 / nScen)} percentage points. Drawing that as a
+      curve would suggest a precision the data does not have, so we show the raw shares below instead.
+      Pick <strong>All years</strong>, <strong>La Nina</strong> or <strong>El Nino</strong> for a plottable sample.</div>`;
+    readoutEl.innerHTML = RAIN_CROPS.map(([key, lbl, color]) => {
+      const i = rainIndexFor(sowingISO);
+      return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center">
+        <span class="text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5">
+          <span style="background:${color}" class="inline-block w-2.5 h-2.5 rounded-full"></span>${lbl}</span>
+        <span class="text-lg font-extrabold text-slate-900">${Math.round(probs[key][i] * 100)}%</span>
+        <span class="text-[10px] text-slate-500 block">${Math.round(probs[key][i] * nScen)} of ${nScen} years had &ge; ${ro.needs_mm[key]} mm</span>
+      </div>`;
+    }).join("");
+    noteEl.innerHTML = `<strong>When the rains usually end:</strong> in these ${nScen} years the median end of the rains
+      was <strong>${fmtDay(cessation.p50)}</strong>.
+      <em>Historical frequencies (NASA POWER, 2000-2026), not a weather forecast.</em>`;
+    return;
+  }
 
   const W = 1100, H = 260, M = { t: 18, r: 20, b: 30, l: 42 };
   const t0 = Date.parse(ro.dates[0]), t1 = Date.parse(ro.dates[ro.dates.length - 1]);
@@ -481,7 +519,7 @@ function renderRainGauge(sowingISO) {
   }
 
   // cessation band: p10-p90 of the historical rainy-season end
-  const c10 = x(Date.parse(ro.cessation.p10)), c90 = Math.min(x(Date.parse(ro.cessation.p90)), W - M.r);
+  const c10 = x(Date.parse(cessation.p10)), c90 = Math.min(x(Date.parse(cessation.p90)), W - M.r);
   let cess = "";
   if (c10 < W - M.r) {
     cess = `<rect x="${c10.toFixed(1)}" y="${M.t}" width="${Math.max(2, c90 - c10).toFixed(1)}" height="${H - M.t - M.b}" fill="#94a3b8" opacity="0.14"/>
@@ -490,9 +528,9 @@ function renderRainGauge(sowingISO) {
 
   let lines = "";
   for (const [key, , color] of RAIN_CROPS) {
-    const pts = ro.dates.map((d, i) => `${x(Date.parse(d)).toFixed(1)},${y(ro.probs[key][i]).toFixed(1)}`).join(" ");
+    const pts = ro.dates.map((d, i) => `${x(Date.parse(d)).toFixed(1)},${y(probs[key][i]).toFixed(1)}`).join(" ");
     lines += `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" stroke-linejoin="round"/>
-      <circle cx="${x(Date.parse(ro.dates[idx])).toFixed(1)}" cy="${y(ro.probs[key][idx]).toFixed(1)}" r="4.5" fill="${color}" stroke="#ffffff" stroke-width="2"/>`;
+      <circle cx="${x(Date.parse(ro.dates[idx])).toFixed(1)}" cy="${y(probs[key][idx]).toFixed(1)}" r="4.5" fill="${color}" stroke="#ffffff" stroke-width="2"/>`;
   }
 
   const xm = x(Date.parse(ro.dates[idx]));
@@ -505,25 +543,25 @@ function renderRainGauge(sowingISO) {
   chartEl.innerHTML = `
     <div class="text-[11px] font-semibold text-slate-600 mt-2 mb-1">${legend}</div>
     <svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img"
-      aria-label="Historical odds of sufficient rain by crop and sowing date">
+      aria-label="Historical odds of sufficient rain by crop and sowing date, ${nScen} ${SCEN_LABEL[scen] || scen}">
       ${grid}${cess}${marker}${lines}
     </svg>`;
 
   // per-crop readout at the current sowing date
-  document.getElementById("rain-gauge-readout").innerHTML = RAIN_CROPS.map(([key, lbl, color]) => {
-    const p = ro.probs[key][idx];
+  readoutEl.innerHTML = RAIN_CROPS.map(([key, lbl, color]) => {
+    const p = probs[key][idx];
     return `<div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5 text-center">
       <span class="text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5">
         <span style="background:${color}" class="inline-block w-2.5 h-2.5 rounded-full"></span>${lbl}</span>
       <span class="text-lg font-extrabold text-slate-900">${Math.round(p * 100)}%</span>
-      <span class="text-[10px] text-slate-500 block">of years had ≥ ${ro.needs_mm[key]} mm over the cycle</span>
+      <span class="text-[10px] text-slate-500 block">of the ${nScen} years had ≥ ${ro.needs_mm[key]} mm over the cycle</span>
     </div>`;
   }).join("");
 
-  document.getElementById("rain-cessation-note").innerHTML =
-    `<strong>When the rains usually end:</strong> in half of the last ${ro.n_years} years, the rains
-    stopped around <strong>${fmtDay(ro.cessation.p50)}</strong>
-    (between ${fmtDay(ro.cessation.p10)} and ${fmtDay(ro.cessation.p90)} in 80% of years).
+  noteEl.innerHTML =
+    `<strong>When the rains usually end:</strong> in half of these ${nScen} ${SCEN_LABEL[scen] || scen}, the rains
+    stopped around <strong>${fmtDay(cessation.p50)}</strong>
+    (between ${fmtDay(cessation.p10)} and ${fmtDay(cessation.p90)} in 80% of them).
     Sowing near that limit means finishing the cycle in the dry season. That is why the curves collapse through March.
     <em>These are historical frequencies (NASA POWER, 2000–2026), not a weather forecast.</em>`;
 }
@@ -584,7 +622,7 @@ function renderCards() {
   const ctl = readControls();
   const { sowing, fieldSpots, ranked } = scoreField(S.fieldId, ctl);
   document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
-  renderRainGauge(sowing); // TG.2 — gauge follows the slip slider
+  renderRainGauge(sowing, ctl.scenario); // TG.2/TG.8 — gauge follows the slip slider and the ENSO scenario
   renderFarmView(ctl);     // TG.5 — farm-level aggregation, same controls
 
   const wrap = document.getElementById("strategy-cards");

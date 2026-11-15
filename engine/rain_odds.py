@@ -8,6 +8,13 @@ Jun 30, the regional dry season) meets the crop's water need. The need is a
 single climatological number per crop: cycle_days x stage-weighted mean Kc x
 mean daily ET0 (same radiation-based Hargreaves form as water_balance.py).
 
+Everything is computed both pooled ("all") and per ENSO scenario (nina /
+nino / neutral), reusing the ONI DJF classification from water_balance.py so
+the gauge and the strategy cards split the history by the same criterion.
+Per-scenario samples are small (La Nina 12 / El Nino 9 / Neutral 5 years), so
+each scenario carries its own `n` and the frontend refuses to draw a curve
+below MIN_SCENARIO_YEARS. Nothing is smoothed or interpolated.
+
 Also exports the rainy-season cessation-date distribution: per year, the
 first date after Feb 1 whose following 20 days accumulate < 20 mm.
 
@@ -25,6 +32,10 @@ import json
 from datetime import date, timedelta
 from pathlib import Path
 
+# Single source of truth for the ENSO split — shared with TC.2 so the gauge and
+# the success table classify years identically. Never duplicate the ONI table.
+from water_balance import ONI_DJF, scenario_of
+
 ROOT = Path(__file__).resolve().parent.parent
 CLIMATE = ROOT / "data" / "climate_daily.csv"
 CROPS = ROOT / "data" / "crops_params.csv"
@@ -39,6 +50,9 @@ DATE_END = date(2026, 4, 30)
 STAGE_FRACTIONS = (0.15, 0.35, 0.20, 0.30)  # same split as water_balance.py
 CESS_WINDOW_DAYS = 20              # cessation: first date after Feb 1 whose
 CESS_THRESHOLD_MM = 20.0           # next 20 days accumulate < 20 mm
+SCENARIOS = ("all", "nina", "nino", "neutral")
+MIN_SCENARIO_YEARS = 8             # below this, odds move in >12% steps: the
+                                   # frontend shows a notice, not a curve
 
 
 def load_climate():
@@ -110,6 +124,18 @@ def safe_date(year, md):
         return date(year, 3, 1)
 
 
+def scenario_years():
+    """scenario -> sorted list of YEARS belonging to it ('all' pools every year).
+
+    ONI_DJF covers 2000-2025, so 2026 contributes to 'all' only: it has no DJF
+    classification yet and must not be silently assigned to a scenario.
+    """
+    out = {"all": list(YEARS)}
+    for scen in SCENARIOS[1:]:
+        out[scen] = [y for y in YEARS if y in ONI_DJF and scenario_of(y) == scen]
+    return out
+
+
 def main():
     climate = load_climate()
     with CROPS.open() as f:
@@ -121,44 +147,70 @@ def main():
     print(f"Mean Feb-May ET0: {et0_mean:.2f} mm/day")
     print("Water need (mm):", needs)
 
-    dates, remaining = [], {"p10": [], "p50": [], "p90": []}
-    probs = {c["crop"]: [] for c in crops}
+    years_of = scenario_years()
+    for scen in SCENARIOS:
+        small = "(too small to plot)" if len(years_of[scen]) < MIN_SCENARIO_YEARS else ""
+        print(f"  {scen:<8} n={len(years_of[scen]):2d} {small}")
+
+    crop_names = [c["crop"] for c in crops]
+    dates = []
     d = DATE_START
     while d <= DATE_END:
         dates.append(d.isoformat())
-        rem = sorted(rain_in_window(climate, safe_date(y, d), 365) for y in YEARS)
-        for q, key in ((0.1, "p10"), (0.5, "p50"), (0.9, "p90")):
-            remaining[key].append(round(percentile(rem, q), 1))
-        for c in crops:
-            name = c["crop"]
-            got = [rain_in_window(climate, safe_date(y, d), cycles[name])
-                   for y in YEARS]
-            probs[name].append(round(
-                sum(1 for g in got if g >= needs[name]) / len(got), 3))
         d += timedelta(days=1)
 
-    cess = {y: cessation_date(climate, y) for y in YEARS}
-    cess_sorted = sorted(v.replace(year=2026) for v in cess.values())
-    cess_pct = {k: percentile(cess_sorted, q).isoformat()
-                for k, q in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9))}
+    # remaining[scen][p10|p50|p90][i]  /  probs[scen][crop][i]
+    remaining = {s: {"p10": [], "p50": [], "p90": []} for s in SCENARIOS}
+    probs = {s: {c: [] for c in crop_names} for s in SCENARIOS}
+    for ds in dates:
+        d = date.fromisoformat(ds)
+        # Rain accumulated per year is scenario-independent; classify afterwards.
+        rem_by_year = {y: rain_in_window(climate, safe_date(y, d), 365)
+                       for y in YEARS}
+        got_by_year = {name: {y: rain_in_window(climate, safe_date(y, d),
+                                                cycles[name]) for y in YEARS}
+                       for name in crop_names}
+        for scen in SCENARIOS:
+            ys = years_of[scen]
+            rem = sorted(rem_by_year[y] for y in ys)
+            for q, key in ((0.1, "p10"), (0.5, "p50"), (0.9, "p90")):
+                remaining[scen][key].append(round(percentile(rem, q), 1))
+            for name in crop_names:
+                got = [got_by_year[name][y] for y in ys]
+                probs[scen][name].append(round(
+                    sum(1 for g in got if g >= needs[name]) / len(got), 3))
 
-    crop_names = [c["crop"] for c in crops]
+    cess = {y: cessation_date(climate, y) for y in YEARS}
+    cess_pct = {}
+    for scen in SCENARIOS:
+        cs = sorted(cess[y].replace(year=2026) for y in years_of[scen])
+        cess_pct[scen] = {k: percentile(cs, q).isoformat()
+                          for k, q in (("p10", 0.1), ("p50", 0.5), ("p90", 0.9))}
+
     with OUT_ODDS.open("w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["date", "rain_remaining_p10", "rain_remaining_p50",
-                    "rain_remaining_p90"] + [f"prob_{c}" for c in crop_names])
+        w.writerow(["date", "scenario", "n_years", "rain_remaining_p10",
+                    "rain_remaining_p50", "rain_remaining_p90"]
+                   + [f"prob_{c}" for c in crop_names])
         for i, ds in enumerate(dates):
-            w.writerow([ds, remaining["p10"][i], remaining["p50"][i],
-                        remaining["p90"][i]] + [probs[c][i] for c in crop_names])
+            for scen in SCENARIOS:
+                w.writerow([ds, scen, len(years_of[scen]),
+                            remaining[scen]["p10"][i], remaining[scen]["p50"][i],
+                            remaining[scen]["p90"][i]]
+                           + [probs[scen][c][i] for c in crop_names])
     with OUT_CESS.open("w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["year", "cessation_date"])
+        w.writerow(["year", "scenario", "cessation_date"])
         for y in sorted(cess):
-            w.writerow([y, cess[y].isoformat()])
+            w.writerow([y, scenario_of(y) if y in ONI_DJF else "",
+                        cess[y].isoformat()])
 
     OUT_JSON.write_text(json.dumps({
         "n_years": len(list(YEARS)),
         "year_range": "2000-2026",
+        "scenario_n": {s: len(years_of[s]) for s in SCENARIOS},
+        "scenario_years": years_of,
+        "min_scenario_years": MIN_SCENARIO_YEARS,
         "needs_mm": needs,
         "cycle_days": cycles,
         "dates": dates,
@@ -167,17 +219,19 @@ def main():
         "cessation": cess_pct,
     }, separators=(",", ":")), encoding="utf-8")
 
-    print(f"Wrote {OUT_ODDS} ({len(dates)} dates), {OUT_CESS}, {OUT_JSON}")
-    print("Cessation p10/p50/p90:", cess_pct)
-    print("\nSanity — P(enough rain), selected dates:")
-    print(f"{'crop':<12}" + "".join(f"{md:>8}" for md in
-          ("01-15", "02-01", "02-15", "03-01", "03-15", "04-01")))
-    for c in crop_names:
-        row = ""
-        for md in ("01-15", "02-01", "02-15", "03-01", "03-15", "04-01"):
-            i = dates.index(f"2026-{md}")
-            row += f"{probs[c][i]:8.2f}"
-        print(f"{c:<12}" + row)
+    n_rows = len(dates) * len(SCENARIOS)
+    print(f"Wrote {OUT_ODDS} ({n_rows} rows), {OUT_CESS}, {OUT_JSON}")
+    for scen in SCENARIOS:
+        print(f"Cessation {scen:<8}", cess_pct[scen])
+    md_cols = ("01-15", "02-01", "02-15", "03-01", "03-15", "04-01")
+    for scen in SCENARIOS:
+        print(f"\nSanity - P(enough rain), scenario={scen} "
+              f"(n={len(years_of[scen])}):")
+        print(f"{'crop':<12}" + "".join(f"{md:>8}" for md in md_cols))
+        for c in crop_names:
+            row = "".join(f"{probs[scen][c][dates.index(f'2026-{md}')]:8.2f}"
+                          for md in md_cols)
+            print(f"{c:<12}" + row)
 
 
 if __name__ == "__main__":

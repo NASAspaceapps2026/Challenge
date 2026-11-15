@@ -108,13 +108,17 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 
 ### `data/rain_odds.csv` / `data/rain_cessation.csv` / `web/data/rain_odds.json`
 - **Produced by:** TG.2 (`engine/rain_odds.py`) — pure climatology from `climate_daily.csv` (2000–2026, 27 Jan–Jun half-years). **No forecast** — honest labeling is binding: always "historical odds".
-- **`rain_odds.csv` columns:** `date, rain_remaining_p10, rain_remaining_p50, rain_remaining_p90, prob_corn, prob_sorghum, prob_millet, prob_brachiaria, prob_crotalaria`
+- **ENSO split (TG.8):** every number is computed pooled (`all`) **and** per ENSO scenario (`nina` / `nino` / `neutral`), reusing `ONI_DJF` + `scenario_of()` imported from `engine/water_balance.py` — do **not** duplicate the ONI table, so the gauge and `success_table.csv` split the history by the same criterion. `ONI_DJF` covers 2000–2025, so **2026 counts only toward `all`**. Resulting n: `all` 27, `nina` 12, `nino` 9, `neutral` 5.
+- **`rain_odds.csv` columns:** `date, scenario, n_years, rain_remaining_p10, rain_remaining_p50, rain_remaining_p90, prob_corn, prob_sorghum, prob_millet, prob_brachiaria, prob_crotalaria`
   - `date`: 2026-01-01 → 2026-04-30, daily (decision-season axis, same convention as `success_table.csv`).
+  - `scenario`: `all` | `nina` | `nino` | `neutral` — **one row per date × scenario** (480 rows).
+  - `n_years`: number of historical years in that scenario (constant per scenario).
   - `rain_remaining_*`: percentiles (mm) of historical rain accumulated from `date` to Jun 30.
-  - `prob_<crop>`: share of the 27 years in which rain accumulated during the crop's cycle (`date` → `date + cycle_days`, capped at Jun 30) met the crop's water need. Need = `cycle_days × stage-weighted mean Kc × mean Feb–May ET0` (same ET0 form as `water_balance.py`), from `crops_params.csv`.
-- **`rain_cessation.csv` columns:** `year, cessation_date` — per year, the first date after Feb 1 whose following 20 days accumulate < 20 mm.
-- **`rain_odds.json`:** `{ n_years, year_range, needs_mm: {crop: mm}, cycle_days: {crop: d}, dates: [...], remaining: {p10/p50/p90: [...]}, probs: {crop: [...]}, cessation: {p10/p50/p90: date} }` — arrays parallel to `dates`.
-- **Consumed by:** the "rain left in the season" gauge in `web/index.html`, which re-reads it at the sowing date implied by the slip slider.
+  - `prob_<crop>`: share of that scenario's years in which rain accumulated during the crop's cycle (`date` → `date + cycle_days`, capped at Jun 30) met the crop's water need. Need = `cycle_days × stage-weighted mean Kc × mean Feb–May ET0` (same ET0 form as `water_balance.py`), from `crops_params.csv`.
+- **`rain_cessation.csv` columns:** `year, scenario, cessation_date` — per year, its ENSO scenario (empty for 2026, unclassified) and the first date after Feb 1 whose following 20 days accumulate < 20 mm.
+- **`rain_odds.json`:** `{ n_years, year_range, scenario_n: {scenario: n}, scenario_years: {scenario: [years]}, min_scenario_years, needs_mm: {crop: mm}, cycle_days: {crop: d}, dates: [...], remaining: {scenario: {p10/p50/p90: [...]}}, probs: {scenario: {crop: [...]}}, cessation: {scenario: {p10/p50/p90: date}} }` — arrays parallel to `dates`. Note `remaining`, `probs` and `cessation` are **keyed by scenario first**.
+- **Consumed by:** the "rain left in the season" gauge in `web/index.html`, which re-reads it at the sowing date implied by the slip slider **and at the scenario chosen in the Climate scenario selector** (the same control that feeds the strategy cards).
+- **Small-sample rule (binding):** `min_scenario_years` (8) is the floor for drawing a curve. Below it (`neutral`, n=5) the frontend shows the raw per-crop shares plus an insufficient-sample notice instead of a polyline. Never smooth or interpolate a scenario curve to make it look nicer — with n=9 the ~11% steps are honest; the fix is labelling the n on screen.
 
 ### `data/productivity_<field_id>.csv` / `web/data/productivity.json`
 - **Produced by:** TG.3 (`engine/productivity.py`) from `ndvi_<field>.csv` + `phenology_<field>.csv`.
