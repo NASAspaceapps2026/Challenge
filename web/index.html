@@ -54,7 +54,7 @@ tailwind.config = {
       </div>
       <div class="flex items-center gap-2 text-xs">
         <span class="flex items-center gap-1.5 bg-agro-950/55 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Fazenda demonstrativa · 7 talhões
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Fazenda demonstrativa · 11 talhões
         </span>
       </div>
     </div>
@@ -89,7 +89,7 @@ tailwind.config = {
         <div class="p-2 bg-amber-100 text-amber-700 rounded-xl"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
         <div>
           <h3 class="text-lg font-extrabold text-slate-900">Janela de colheita — <span id="sel-field-name">T1</span></h3>
-          <p class="text-xs text-slate-500">Previsão a partir da curva NDVI do próprio talhão</p>
+          <p class="text-xs text-slate-500"><span class="gloss" title="Regressão da duração do ciclo sobre dois preditores conhecidos em 15/dez: chuva acumulada da primavera (NASA POWER) e dia de emergência detectado pela subida do NDVI. Validada com replay leave-one-season-out em 77 safras-talhão.">Previsão: chuva de primavera + emergência detectada por NDVI</span></p>
         </div>
       </div>
       <span id="harvest-provisional-badge" class="hidden bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-1 rounded-full">estimativa provisória</span>
@@ -121,7 +121,7 @@ tailwind.config = {
       <p class="mt-1">Em <strong>15/dez/2025</strong>, com a soja ainda no campo, dissemos que este talhão colheria por volta de
         <strong id="replay-pred">—</strong>. O satélite detectou a colheita real em
         <strong id="replay-actual">—</strong> — diferença de <strong id="replay-err">—</strong>.
-        Média dos 7 talhões: <strong id="replay-mean">—</strong> de erro.</p>
+        Média dos 11 talhões: <strong id="replay-mean">—</strong> de erro.</p>
     </div>
 
     <div id="prod-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
@@ -149,7 +149,7 @@ tailwind.config = {
 
     <!-- TG.1 — recurrent low-vigor zones, surfaced in the panel (not only map tooltip) -->
     <div id="spots-box" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3+ safras — padrão espacial recorrente, compatível com problema de solo. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
+      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3+ safras — padrão espacial recorrente, compatível com problema de solo. Bordas do talhão (faixa de 10 m) e feições lineares finas (estradas, rastros de máquina) são filtradas da análise. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
       <p class="mt-1" id="spots-headline">—</p>
       <div id="spots-list" class="flex flex-wrap gap-1.5 mt-2"></div>
       <p class="mt-1.5 text-[10px] text-slate-500 italic">Padrão compatível com nematoide, compactação ou fertilidade — confirme com amostragem de solo direcionada (zonas tracejadas em vermelho no mapa).</p>
@@ -260,7 +260,7 @@ tailwind.config = {
       <div class="p-2 bg-agro-100 text-agro-800 rounded-xl"><i data-lucide="tractor" class="w-6 h-6"></i></div>
       <div>
         <h3 class="text-lg font-extrabold text-slate-900">Se for plantar UMA cultura na fazenda toda, qual?</h3>
-        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira — este é o ranking agregado dos 7 talhões, ponderado pela área de cada um.</p>
+        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira — este é o ranking agregado dos 11 talhões, ponderado pela área de cada um.</p>
       </div>
     </div>
     <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full gloss"
