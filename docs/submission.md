@@ -17,27 +17,28 @@ Repo: https://github.com/NASAspaceapps2026/Challenge
 
 ## High-Level Summary
 
-*(~200 words, per the platform's recommendation)*
+*(200 words, per the platform's recommendation)*
 
-In Brazil's Mato Grosso grain belt, every soybean farmer faces the same February
-question: the crop is about to come off, a short rain window remains, and whatever
-comes next — or nothing — will shape the farm's water risk, soil health and pest
-pressure for years. Today that call is made by experience, without field-specific
-data.
+Soybean farmers in Mato Grosso, Brazil, decide every February what to plant after
+harvest. The rain window is short, and the choice determines water risk, soil
+health and pest pressure for the following years. This decision is currently made
+by experience, without data specific to each field.
 
-Field Shift answers it with satellites. From each field's own NDVI history (NASA
-MODIS + ESA Sentinel-2) we predict the soybean harvest date as a P10/P50/P90
-range — the *real* planting window left this season. We then rank four succession
-strategies — second-crop corn (current practice), corn + brachiaria, sorghum/
-millet, and a crotalaria cover crop — by running each through 26 years of NASA
-POWER and GPM rainfall in a daily water balance, counting satellite-observed
-bare-soil days (~100–110 per dry season under the current rotation), and factoring
-SRTM slope and pest-cycle effects, weighted by the farmer's own priorities.
+Field Shift supports that decision with satellite data. The tool reads each
+field's NDVI history from NASA MODIS and ESA Sentinel-2 and predicts the soybean
+harvest date as a P10, P50 and P90 range. This range measures the planting window
+that actually remains in the season. The tool then evaluates four succession
+strategies: second-crop corn, which is the current practice, corn with brachiaria,
+sorghum or millet, and a crotalaria cover crop. Each strategy is tested against
+26 years of NASA POWER and GPM rainfall in a daily water balance, scored on
+bare-soil days observed by satellite, and adjusted for slope from SRTM and for
+pest cycle effects. The farmer sets the weight given to income, soil protection
+and risk.
 
-The result: ranked strategy cards over a clickable satellite map of a 7-field
-demonstration farm near Sorriso (MT). It runs entirely in the browser on
-pre-computed tables, works on a phone, and explicitly tells the farmer where the
-data ends and their agronomist begins.
+The interface is a satellite map of seven demonstration fields near Sorriso, with
+ranked strategy cards per field. It runs entirely in the browser, works on a
+phone, and states explicitly where the data ends and the agronomist's judgment
+begins.
 
 ## Project Demo
 
