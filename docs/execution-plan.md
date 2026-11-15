@@ -65,7 +65,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TG.1 — Recurrent low-vigor spots per field — done (Vinicius; `engine/low_vigor_spots.py` → 7 zones in T1/T2/T4/T5, map overlay + crotalaria evidence + +8 scoring bonus)
 - [x] TG.2 — "Rain left in the season" gauge (POWER climatology) — done (Vinicius; `engine/rain_odds.py` → `data/rain_odds.csv` + `web/data/rain_odds.json`, gauge follows the slip slider; odds collapse through March as expected, median rain cessation Apr 22)
 - [x] TG.3 — Relative productivity per field (NDVI integral vs own history) — done (Vinicius; `engine/productivity.py` → `data/productivity_T*.csv` + `web/data/productivity.json`, panel box with 2025/26 highlighted vs the field's own mean; relative signal only, feeds TG.4)
-- [ ] TG.5 — Farm-level recommendation (one succession crop for the whole farm) — **Vinicius** — *do this BEFORE TG.4*
+- [x] TG.5 — Farm-level recommendation (one succession crop for the whole farm) — done (Vinicius; "farm view" block in `web/index.html`: per-field `scoreStrategies` aggregated area-weighted by `area_ha`, best/worst-field spread shown, blocked strategies flagged per field, reacts to the same controls)
 - [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
 - [ ] TG.x — **Pending HTML update pass** (`web/index.html`) — manual browser review still owed: TE.4 polish check, surface TG.1 low-vigor spots more prominently in the page (not just map tooltip), and verify the TG.2 rain gauge renders/reacts correctly — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*

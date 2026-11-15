@@ -228,6 +228,23 @@ tailwind.config = {
   <p id="rain-cessation-note" class="text-xs text-slate-600 mt-3 leading-relaxed"></p>
 </section>
 
+<!-- 3.8 VISÃO DA FAZENDA (TG.5) -->
+<section class="bg-white rounded-2xl shadow-sm border-2 border-agro-600 p-5">
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+    <div class="flex items-center gap-2.5">
+      <div class="p-2 bg-agro-100 text-agro-800 rounded-xl"><i data-lucide="tractor" class="w-6 h-6"></i></div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900">Se for plantar UMA cultura na fazenda toda, qual?</h3>
+        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira — este é o ranking agregado dos 7 talhões, ponderado pela área de cada um.</p>
+      </div>
+    </div>
+    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full gloss"
+      title="Não é um cálculo novo: é a média, ponderada por hectares, dos mesmos scores por talhão mostrados abaixo — cada talhão com sua própria data de colheita, declividade e solo nu.">mesmos scores por talhão, agregados por área</span>
+  </div>
+  <div id="farm-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+  <p id="farm-view-note" class="text-[11px] text-slate-500 mt-3 leading-relaxed"></p>
+</section>
+
 <!-- 4. CARDS DE ESTRATÉGIA -->
 <section>
   <div class="mb-4">
@@ -496,38 +513,54 @@ function cardsText(id) {
   return null;
 }
 
-function renderCards() {
-  const h = S.data.harvest[S.fieldId];
-  const sowing = h ? addDays(h.p50, S.slip + S.TURNAROUND_DAYS) : "2026-02-15";
-  document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
-  renderRainGauge(sowing); // TG.2 — gauge follows the slip slider
-
-  const feat = (S.data.fields.features || []).find(f => f.properties.id === S.fieldId);
-  const selectedPests = [
-    ["p-nematode", "nematode"], ["p-leafhopper", "corn_leafhopper"], ["p-armyworm", "fall_armyworm"],
-  ].filter(([el]) => document.getElementById(el).checked).map(([, p]) => p);
-
-  const fieldSpots = (S.data.spots.features || []).filter(f => f.properties.field_id === S.fieldId);
-
-  const ranked = FieldShiftScoring.scoreStrategies({
-    recurrentSpots: fieldSpots.length > 0,
-    sowingISO: sowing,
+/* Shared controls (sliders/checkboxes) read once per render. */
+function readControls() {
+  return {
     scenario: S.scenario,
     weights: {
       income: +document.getElementById("w-income").value / 100,
       soil: +document.getElementById("w-soil").value / 100,
       risk: +document.getElementById("w-risk").value / 100,
     },
-    selectedPests,
+    selectedPests: [
+      ["p-nematode", "nematode"], ["p-leafhopper", "corn_leafhopper"], ["p-armyworm", "fall_armyworm"],
+    ].filter(([el]) => document.getElementById(el).checked).map(([, p]) => p),
     constraints: {
       cattle: document.getElementById("c-cattle").checked,
       cornContract: document.getElementById("c-contract").checked,
     },
-    slopeDeg: feat ? feat.properties.slope_deg : 0,
-    bareSoil: S.data.bareSoil[S.fieldId],
-    successTable: S.data.success,
-    pests: S.data.pests,
-  });
+  };
+}
+
+/* Score all strategies for one field with its OWN harvest date + attributes. */
+function scoreField(fieldId, ctl) {
+  const h = S.data.harvest[fieldId];
+  const sowing = h ? addDays(h.p50, S.slip + S.TURNAROUND_DAYS) : "2026-02-15";
+  const feat = (S.data.fields.features || []).find(f => f.properties.id === fieldId);
+  const fieldSpots = (S.data.spots.features || []).filter(f => f.properties.field_id === fieldId);
+  return {
+    sowing, fieldSpots,
+    ranked: FieldShiftScoring.scoreStrategies({
+      recurrentSpots: fieldSpots.length > 0,
+      sowingISO: sowing,
+      scenario: ctl.scenario,
+      weights: ctl.weights,
+      selectedPests: ctl.selectedPests,
+      constraints: ctl.constraints,
+      slopeDeg: feat ? feat.properties.slope_deg : 0,
+      bareSoil: S.data.bareSoil[fieldId],
+      successTable: S.data.success,
+      pests: S.data.pests,
+    }),
+  };
+}
+
+function renderCards() {
+  const ctl = readControls();
+  const { sowing, fieldSpots, ranked } = scoreField(S.fieldId, ctl);
+  document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
+  renderRainGauge(sowing); // TG.2 — gauge follows the slip slider
+  renderFarmView(ctl);     // TG.5 — farm-level aggregation, same controls
 
   const wrap = document.getElementById("strategy-cards");
   wrap.innerHTML = ranked.map((r, i) => {
@@ -577,6 +610,77 @@ function renderCards() {
       </div>` : `<p class="text-[11px] text-slate-400 italic">Card completo (por quê / evidência / riscos) em preparação.</p>`}
     </article>`;
   }).join("");
+}
+
+/* ------------------------------------------------ TG.5 — visão da fazenda */
+/* One succession crop for the WHOLE farm: run the same per-field scoring for
+ * every field (each with its own harvest date + slip) and aggregate the scores
+ * area-weighted by area_ha. A strategy disabled on any field is flagged, never
+ * silently averaged in. */
+function renderFarmView(ctl) {
+  const el = document.getElementById("farm-view");
+  const note = document.getElementById("farm-view-note");
+  const feats = S.data.fields.features || [];
+  if (!feats.length || !el) { if (el) el.innerHTML = ""; return; }
+
+  // per-strategy accumulator across fields
+  const agg = {}; // id -> {label, wScore, wArea, blocked:[], perField:[]}
+  let totalArea = 0;
+  for (const f of feats) {
+    const fid = f.properties.id;
+    const area = f.properties.area_ha || 0;
+    totalArea += area;
+    const { ranked } = scoreField(fid, ctl);
+    for (const r of ranked) {
+      const a = agg[r.id] || (agg[r.id] = { label: r.label, wScore: 0, wArea: 0, blocked: [], perField: [] });
+      if (r.disabled) {
+        a.blocked.push({ fid, reason: r.reason });
+      } else {
+        a.wScore += r.score * area;
+        a.wArea += area;
+        a.perField.push({ fid, score: r.score });
+      }
+    }
+  }
+
+  const rows = Object.entries(agg).map(([id, a]) => {
+    const fullyBlocked = a.wArea === 0;
+    const score = fullyBlocked ? null : a.wScore / a.wArea;
+    let best = null, worst = null;
+    for (const p of a.perField) {
+      if (!best || p.score > best.score) best = p;
+      if (!worst || p.score < worst.score) worst = p;
+    }
+    return { id, ...a, score, fullyBlocked, best, worst };
+  });
+  rows.sort((x, y) => (x.fullyBlocked - y.fullyBlocked) || ((y.score ?? -1) - (x.score ?? -1)));
+
+  el.innerHTML = rows.map((r, i) => {
+    const medal = r.fullyBlocked ? "" : (["🥇", "🥈", "🥉"][i] || "");
+    const blockedHa = r.blocked.length
+      ? r.blocked.map(b => b.fid).join(", ")
+      : null;
+    return `
+    <div class="rounded-xl border ${r.fullyBlocked ? "border-slate-200 bg-slate-50 opacity-60" : i === 0 ? "border-2 border-agro-600 bg-agro-50 shadow-sm" : "border-slate-200 bg-slate-50"} p-3.5 flex flex-col gap-1.5">
+      <div class="flex items-start justify-between gap-2">
+        <span class="text-sm font-extrabold text-slate-900 leading-tight">${medal} ${r.label}</span>
+        <span class="text-xl font-extrabold ${r.fullyBlocked ? "text-slate-400" : "text-agro-800"} shrink-0">${r.fullyBlocked ? "—" : Math.round(r.score)}</span>
+      </div>
+      ${r.fullyBlocked
+        ? `<p class="text-[11px] font-bold text-rose-600">${r.blocked[0] ? r.blocked[0].reason : "Bloqueada em todos os talhões"}</p>`
+        : `<div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden"><div class="bg-agro-600 h-1.5 rounded-full" style="width:${Math.round(r.score)}%"></div></div>
+          <p class="text-[11px] text-slate-600">${r.best && r.worst && r.best.fid !== r.worst.fid
+            ? `Melhor talhão: <strong>${r.best.fid}</strong> (${r.best.score}) · Pior: <strong>${r.worst.fid}</strong> (${r.worst.score})`
+            : `Score igual em todos os talhões`}</p>`}
+      ${!r.fullyBlocked && blockedHa
+        ? `<p class="text-[11px] font-bold text-rose-600">⚠ Bloqueada em ${blockedHa}: ${r.blocked[0].reason} — média calculada só nos talhões restantes</p>` : ""}
+    </div>`;
+  }).join("");
+
+  note.innerHTML = `<strong>Como ler:</strong> cada número é a média dos scores por talhão
+    (os mesmos dos cards abaixo), ponderada pelos <strong>${Math.round(totalArea)} ha</strong> da fazenda —
+    cada talhão entra com sua própria data de colheita, declividade e solo nu. O melhor/pior talhão mostra a dispersão:
+    um score alto na média ainda pode esconder um talhão onde a escolha é ruim. Reage aos mesmos controles acima.`;
 }
 
 /* ------------------------------------------------ seleção e controles */
