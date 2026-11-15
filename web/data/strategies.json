@@ -3,19 +3,19 @@
     "id": "current_corn",
     "name": "Safrinha corn (current practice)",
     "why": "Second-crop corn is the region's default because it turns the post-soybean window into the farm's second income with known markets and logistics.",
-    "evidence": "Our 25-year water balance gives corn an 88% success rate when sown by Jan 21, falling to 50% by Feb 10 and 8% by Feb 20 — and the P50 harvest across the 7 demo fields runs Jan 18 to Feb 10, so late fields are already at the edge. NDVI shows ~99-110 bare-soil days per dry season under this system, the highest of the four strategies.",
+    "evidence": "Our 25-year water balance gives corn an 88% success rate when sown by Jan 21, falling to 50% by Feb 10 and 8% by Feb 20. The P50 harvest across the 11 demo fields runs Jan 16 to Feb 9, so late fields are already at the edge. NDVI shows ~99-110 bare-soil days per dry season under this system, the highest of the four strategies.",
     "benefits": [
       "Highest income potential of the four strategies, with an established local market and storage/logistics chain.",
       "Keeps the familiar soybean-corn routine: no new machinery, seed channels, or management learning curve."
     ],
     "gaps": [
-      "We model water risk only; corn price and input costs for 2026 are not in our data.",
-      "Our success threshold is a water-balance proxy, not a yield model — a 'successful' season can still have below-average yield."
+      "We model water risk only. Corn price and input costs for 2026 are not in our data.",
+      "Our success threshold is a water-balance proxy, not a yield model. A 'successful' season can still have below-average yield."
     ],
     "risks": [
       "Sowing success collapses after early February: a 10-day harvest slip can cut the historical success rate roughly in half.",
       "Corn hosts the corn leafhopper and does not break the nematode cycle (both negative in our pest table), keeping the 'green bridge' alive into next season.",
-      "Leaves the soil bare for ~3.5 months of dry season after harvest — the worst erosion and degradation exposure of the four options."
+      "Leaves the soil bare for ~3.5 months of dry season after harvest, the worst erosion and degradation exposure of the four options."
     ],
     "agronomist_notice": "This card is decision support built from satellite and climate data, not agronomic advice. Confirm hybrid choice, sowing deadline, and crop insurance (ZARC) fit with your agronomist before committing."
   },
@@ -23,19 +23,19 @@
     "id": "corn_brachiaria",
     "name": "Corn + brachiaria intercrop",
     "why": "Intercropping brachiaria with safrinha corn keeps the corn income while the grass covers the soil through the dry season and feeds the next soybean crop's root zone.",
-    "evidence": "Same sowing window as corn (88% success by Jan 21 in our 25-year water balance), but bare-soil days drop from ~99-110 to ~10-11 per year in our NDVI-based estimate — a ~90% reduction in dry-season soil exposure. In our pest table brachiaria also reduces nematode pressure (+1) where corn alone worsens it (-1).",
+    "evidence": "Same sowing window as corn (88% success by Jan 21 in our 25-year water balance), but bare-soil days drop from ~99-110 to ~10-11 per year in our NDVI-based estimate, a reduction of about 90% in dry-season soil exposure. In our pest table brachiaria also reduces nematode pressure (+1) where corn alone worsens it (-1).",
     "benefits": [
       "Near-corn income with the best soil protection of any grain strategy: year-round cover, more organic matter, better rainfall infiltration.",
-      "Standing forage after corn harvest — directly valuable if you run cattle in the dry season.",
+      "Standing forage after corn harvest, directly valuable if you run cattle in the dry season.",
       "Brachiaria straw improves the no-till seedbed for next season's soybean."
     ],
     "gaps": [
-      "We don't model the corn yield penalty from intercompetition (literature suggests small if managed, but it's not in our data).",
+      "We don't model the corn yield penalty from intercompetition (literature suggests it is small if managed, but it's not in our data).",
       "Extra seed cost and the desiccation operation before soybean are not costed in our tables."
     ],
     "risks": [
-      "Same hard sowing deadline as corn — the window closes just as fast after early February.",
-      "Requires desiccating the brachiaria at the right timing before soybean planting; done late, it competes with the next crop.",
+      "Same hard sowing deadline as corn. The window closes just as fast after early February.",
+      "Requires desiccating the brachiaria at the right timing before soybean planting. Done late, it competes with the next crop.",
       "Slightly more complex sowing operation (mixing seed boxes or a second pass)."
     ],
     "agronomist_notice": "This card is decision support built from satellite and climate data, not agronomic advice. Ask your agronomist about brachiaria variety, seeding rate, and desiccation timing for your soil before committing."
@@ -44,20 +44,20 @@
     "id": "sorghum_millet",
     "name": "Sorghum / millet",
     "why": "Sorghum and millet tolerate a later, drier window than corn, so they rescue income from fields where the soybean harvest slips past corn's safe deadline.",
-    "evidence": "Our 25-year water balance keeps sorghum at a 92-96% success rate through early February and 77% at Feb 20 — dates where corn is already at 50% and 8%. Millet stays at 96% even sown Feb 25. With P50 harvests up to Feb 10 on our late demo fields, this is the strategy whose window actually fits them. Bare-soil days (~84-94) are somewhat lower than corn's ~99-110.",
+    "evidence": "Our 25-year water balance keeps sorghum at a 92-96% success rate through early February and 77% at Feb 20, dates where corn is already at 50% and 8%. Millet stays at 96% even sown Feb 25. With P50 harvests up to Feb 9 on our late demo fields, this is the strategy whose window actually fits them. Bare-soil days (~84-94) are somewhat lower than corn's ~99-110.",
     "benefits": [
-      "Much safer than corn when sowing lands in February — roughly half the water-balance failure rate at late dates.",
+      "Much safer than corn when sowing lands in February, with roughly half the water-balance failure rate at late dates.",
       "Breaks the corn leafhopper 'green bridge' (positive effect in our pest table, vs. strongly negative for corn).",
       "Flexible use: grain, silage, or cover, depending on how the season develops."
     ],
     "gaps": [
-      "We don't know the local sorghum/millet price or buyer liquidity in the Sorriso region — income is the big unknown.",
-      "Our parameters treat sorghum and millet as one strategy; cultivar-level differences are not modeled."
+      "We don't know the local sorghum/millet price or buyer liquidity in the Sorriso region, so income is the big unknown.",
+      "Our parameters treat sorghum and millet as one strategy. Cultivar-level differences are not modeled."
     ],
     "risks": [
-      "Lower and less certain revenue per hectare than corn; a thin local market can leave grain unsold or discounted.",
+      "Lower and less certain revenue per hectare than corn. A thin local market can leave grain unsold or discounted.",
       "Fall armyworm still attacks sorghum and millet (negative in our pest table), so scouting is still required.",
-      "Still leaves ~3 months of bare soil after harvest — better than corn, far from a cover crop."
+      "Still leaves ~3 months of bare soil after harvest, better than corn but far from a cover crop."
     ],
     "agronomist_notice": "This card is decision support built from satellite and climate data, not agronomic advice. Check local buyer demand and cultivar fit with your agronomist and grain broker before committing."
   },
@@ -65,18 +65,18 @@
     "id": "cover_crotalaria",
     "name": "Cover crop (crotalaria)",
     "why": "When the window is too short or too risky for a cash crop, crotalaria converts the off-season into soil capital: nitrogen fixation, nematode suppression, and cover instead of bare ground.",
-    "evidence": "Crotalaria is the most forgiving option in our 25-year water balance — 92%+ success sown as late as Feb 25, when corn is at 0%. It is the strongest nematode suppressor in our pest table (+2, the best score of any crop), and cuts observed bare-soil days to ~40-44 versus ~99-110 under corn.",
+    "evidence": "Crotalaria is the most forgiving option in our 25-year water balance, with 92%+ success sown as late as Feb 25, when corn is at 0%. It is the strongest nematode suppressor in our pest table (+2, the best score of any crop), and cuts observed bare-soil days to ~40-44 versus ~99-110 under corn.",
     "benefits": [
       "Biological nitrogen fixation reduces fertilizer need for next season's soybean.",
       "Strongest pest-cycle break of the four strategies, especially against root-knot and lesion nematodes.",
-      "Lowest establishment risk at late sowing dates — a safe 'plan B' for any field where harvest slips badly."
+      "Lowest establishment risk at late sowing dates, a safe 'plan B' for any field where harvest slips badly."
     ],
     "gaps": [
-      "No direct revenue is modeled; the payback is next season's soybean response, which our data does not quantify.",
+      "No direct revenue is modeled. The payback is next season's soybean response, which our data does not quantify.",
       "Seed cost and availability of crotalaria in volume for the region are not in our tables."
     ],
     "risks": [
-      "Zero cash income this off-season — a real cash-flow cost even if the agronomic return is positive.",
+      "Zero cash income this off-season, a real cash-flow cost even if the agronomic return is positive.",
       "Needs timely termination/management before the next soybean planting.",
       "Opportunity cost: in a year when a late corn window would have worked out, this choice leaves money on the table."
     ],

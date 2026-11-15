@@ -49,7 +49,7 @@ tailwind.config = {
             <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Field <span class="text-emerald-400">Shift</span></h1>
             <span class="bg-emerald-500/25 text-emerald-200 border border-emerald-300/40 text-[11px] font-bold px-2.5 py-0.5 rounded-full">NASA Space Apps 2026</span>
           </div>
-          <p class="text-xs text-emerald-50/90">Quando sai a soja — e o que plantar depois. Sorriso, MT · dados MODIS, POWER, GPM, SRTM + Sentinel-2</p>
+          <p class="text-xs text-emerald-50/90">Quando sai a soja e o que plantar depois. Sorriso, MT · dados MODIS, POWER, GPM, SRTM + Sentinel-2</p>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
@@ -88,7 +88,7 @@ tailwind.config = {
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-amber-100 text-amber-700 rounded-xl"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
         <div>
-          <h3 class="text-lg font-extrabold text-slate-900">Janela de colheita — <span id="sel-field-name">T1</span></h3>
+          <h3 class="text-lg font-extrabold text-slate-900">Janela de colheita · <span id="sel-field-name">T1</span></h3>
           <p class="text-xs text-slate-500"><span class="gloss" title="Regressão da duração do ciclo sobre dois preditores conhecidos em 15/dez: chuva acumulada da primavera (NASA POWER) e dia de emergência detectado pela subida do NDVI. Validada com replay leave-one-season-out em 77 safras-talhão.">Previsão: chuva de primavera + emergência detectada por NDVI</span></p>
         </div>
       </div>
@@ -105,7 +105,7 @@ tailwind.config = {
         <span id="harvest-p50" class="text-xl font-extrabold text-agro-950">—</span>
       </div>
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
-        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 90% dos anos semelhantes a colheita já tinha saído nesta data — cenário de atraso">Pessimista (P90)</span></span>
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 90% dos anos semelhantes a colheita já tinha saído nesta data. É o cenário de atraso">Pessimista (P90)</span></span>
         <span id="harvest-p90" class="text-lg font-extrabold text-amber-800">—</span>
       </div>
     </div>
@@ -113,22 +113,22 @@ tailwind.config = {
     <p class="text-xs text-slate-600 mb-3 leading-relaxed">
       <strong>O que isso significa:</strong> há 50% de chance de a soja deste talhão sair antes de
       <strong id="harvest-p50-inline">—</strong>. Essa data define quantos dias de chuva restam
-      para a cultura seguinte — e é isso que o ranking abaixo usa.
+      para a cultura seguinte, e é isso que o ranking abaixo usa.
     </p>
 
     <div id="replay-box" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-agro-800">✓ Replay 2025/26 — a previsão funcionou?</span>
+      <span class="font-extrabold text-agro-800">✓ Replay 2025/26: a previsão funcionou?</span>
       <p class="mt-1">Em <strong>15/dez/2025</strong>, com a soja ainda no campo, dissemos que este talhão colheria por volta de
         <strong id="replay-pred">—</strong>. O satélite detectou a colheita real em
-        <strong id="replay-actual">—</strong> — diferença de <strong id="replay-err">—</strong>.
+        <strong id="replay-actual">—</strong>, uma diferença de <strong id="replay-err">—</strong>.
         Média dos 11 talhões: <strong id="replay-mean">—</strong> de erro.</p>
     </div>
 
     <div id="prod-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-amber-800 gloss" title="Soma do NDVI diário entre emergência e colheita — proxy de biomassa acumulada. Sinal RELATIVO: comparamos o talhão só com o histórico dele mesmo; não convertemos em sacas/ha.">🌱 Produtividade relativa (biomassa por satélite)</span>
+      <span class="font-extrabold text-amber-800 gloss" title="Soma do NDVI diário entre emergência e colheita, um indicador de biomassa acumulada. Sinal RELATIVO: comparamos o talhão só com o histórico dele mesmo. Não convertemos em sacas/ha.">🌱 Produtividade relativa (biomassa por satélite)</span>
       <p class="mt-1" id="prod-headline">—</p>
       <div id="prod-history" class="flex flex-wrap gap-1.5 mt-2"></div>
-      <p class="mt-1.5 text-[10px] text-slate-500 italic">Sinal relativo (integral de NDVI vs média do próprio talhão) — não é estimativa de sacas/ha.</p>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Sinal relativo (integral de NDVI vs média do próprio talhão). Não é estimativa de sacas/ha.</p>
 
       <!-- TG.4 — farmer's own yields → per-field calibration (localStorage only) -->
       <div class="mt-2 pt-2 border-t border-amber-200">
@@ -137,7 +137,7 @@ tailwind.config = {
         <div id="calib-form" class="hidden mt-2">
           <p class="text-[10px] text-slate-600 mb-1.5">Digite o que você colheu em cada safra (sacas/ha, do seu caderno).
             Com <strong>3+ safras</strong>, calibramos a curva do satélite para o seu talhão.
-            <strong>Seus dados ficam só neste navegador</strong> — nada é enviado a servidor algum.</p>
+            <strong>Seus dados ficam só neste navegador</strong>: nada é enviado a servidor algum.</p>
           <div id="calib-inputs" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5"></div>
           <div class="flex items-center gap-2 mt-1.5">
             <button id="calib-clear" class="text-[10px] font-bold text-slate-500 underline cursor-pointer bg-transparent border-0 p-0">Limpar este talhão</button>
@@ -149,10 +149,10 @@ tailwind.config = {
 
     <!-- TG.1 — recurrent low-vigor zones, surfaced in the panel (not only map tooltip) -->
     <div id="spots-box" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3+ safras — padrão espacial recorrente, compatível com problema de solo. Bordas do talhão (faixa de 10 m) e feições lineares finas (estradas, rastros de máquina) são filtradas da análise. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
+      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3 ou mais safras, um padrão espacial recorrente compatível com problema de solo. Bordas do talhão (faixa de 10 m) e feições lineares finas (estradas, rastros de máquina) são filtradas da análise. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
       <p class="mt-1" id="spots-headline">—</p>
       <div id="spots-list" class="flex flex-wrap gap-1.5 mt-2"></div>
-      <p class="mt-1.5 text-[10px] text-slate-500 italic">Padrão compatível com nematoide, compactação ou fertilidade — confirme com amostragem de solo direcionada (zonas tracejadas em vermelho no mapa).</p>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Padrão compatível com nematoide, compactação ou fertilidade. Confirme com amostragem de solo direcionada (zonas tracejadas em vermelho no mapa).</p>
     </div>
 
     <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
@@ -193,7 +193,7 @@ tailwind.config = {
     <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="sliders-horizontal" class="w-6 h-6"></i></div>
     <div>
       <h3 class="text-lg font-extrabold text-slate-900">Ajuste à sua realidade</h3>
-      <p class="text-xs text-slate-500">O ranking recalcula na hora — tudo roda no seu navegador</p>
+      <p class="text-xs text-slate-500">O ranking recalcula na hora, tudo roda no seu navegador</p>
     </div>
   </div>
 
@@ -229,9 +229,9 @@ tailwind.config = {
       <label class="flex items-center gap-2"><input id="c-cattle" type="checkbox" class="accent-agro-700"> Tenho gado (integração)</label>
       <label class="flex items-center gap-2"><input id="c-contract" type="checkbox" class="accent-agro-700"> Contrato de milho</label>
       <label class="text-xs font-extrabold text-slate-700 block pt-1">Pragas conhecidas</label>
-      <label class="flex items-center gap-2"><input id="p-nematode" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Verme microscópico de solo que ataca raízes; crotalária e braquiária ajudam a suprimir">Nematoide</span></label>
-      <label class="flex items-center gap-2"><input id="p-leafhopper" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Inseto que transmite os enfezamentos do milho; interromper a 'ponte verde' (milho vivo o ano todo) reduz a praga">Cigarrinha-do-milho</span></label>
-      <label class="flex items-center gap-2"><input id="p-armyworm" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Lagarta que ataca milho e sorgo; culturas de cobertura quebram o ciclo">Lagarta-do-cartucho</span></label>
+      <label class="flex items-center gap-2"><input id="p-nematode" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Verme microscópico de solo que ataca raízes. Crotalária e braquiária ajudam a suprimir">Nematoide</span></label>
+      <label class="flex items-center gap-2"><input id="p-leafhopper" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Inseto que transmite os enfezamentos do milho. Interromper a 'ponte verde' (milho vivo o ano todo) reduz a praga">Cigarrinha-do-milho</span></label>
+      <label class="flex items-center gap-2"><input id="p-armyworm" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Lagarta que ataca milho e sorgo. Culturas de cobertura quebram o ciclo">Lagarta-do-cartucho</span></label>
     </div>
   </div>
 </section>
@@ -243,10 +243,10 @@ tailwind.config = {
       <div class="p-2 bg-sky-100 text-sky-700 rounded-xl"><i data-lucide="cloud-rain" class="w-6 h-6"></i></div>
       <div>
         <h3 class="text-lg font-extrabold text-slate-900">Chuva que ainda resta na estação</h3>
-        <p class="text-xs text-slate-500">Em quantos dos últimos 27 anos choveu o suficiente para cada cultura, plantada em cada data? Mova o slider de atraso acima — a linha pontilhada acompanha.</p>
+        <p class="text-xs text-slate-500">Em quantos dos últimos 27 anos choveu o suficiente para cada cultura, plantada em cada data? Mova o slider de atraso acima e a linha pontilhada acompanha.</p>
       </div>
     </div>
-    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Odds históricas (2000–2026, NASA POWER) — não é previsão</span>
+    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Odds históricas (2000–2026, NASA POWER), não é previsão</span>
   </div>
   <div id="rain-gauge-chart" class="w-full overflow-x-auto"></div>
   <div id="rain-gauge-readout" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3"></div>
@@ -260,11 +260,11 @@ tailwind.config = {
       <div class="p-2 bg-agro-100 text-agro-800 rounded-xl"><i data-lucide="tractor" class="w-6 h-6"></i></div>
       <div>
         <h3 class="text-lg font-extrabold text-slate-900">Se for plantar UMA cultura na fazenda toda, qual?</h3>
-        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira — este é o ranking agregado dos 11 talhões, ponderado pela área de cada um.</p>
+        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira. Este é o ranking agregado dos 11 talhões, ponderado pela área de cada um.</p>
       </div>
     </div>
     <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full gloss"
-      title="Não é um cálculo novo: é a média, ponderada por hectares, dos mesmos scores por talhão mostrados abaixo — cada talhão com sua própria data de colheita, declividade e solo nu.">mesmos scores por talhão, agregados por área</span>
+      title="Não é um cálculo novo: é a média, ponderada por hectares, dos mesmos scores por talhão mostrados abaixo, cada talhão com sua própria data de colheita, declividade e solo nu.">mesmos scores por talhão, agregados por área</span>
   </div>
   <div id="farm-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
   <p id="farm-view-note" class="text-[11px] text-slate-500 mt-3 leading-relaxed"></p>
@@ -274,14 +274,14 @@ tailwind.config = {
 <section>
   <div class="mb-4">
     <span class="text-xs font-bold uppercase tracking-wider text-agro-700">O produto</span>
-    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">O que plantar depois da soja — ranqueado para este talhão</h3>
+    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">O que plantar depois da soja, ranqueado para este talhão</h3>
     <p class="text-sm text-slate-600 mt-1">Cada card mostra por quê, com que evidência, benefícios, o que não sabemos e riscos.</p>
   </div>
   <div id="strategy-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
   <div class="mt-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
     <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
     <p class="text-xs text-amber-900 leading-relaxed"><strong>Ferramenta de apoio, não de decisão.</strong>
-      Estes números vêm de satélite e histórico climático regional — eles não substituem a avaliação do seu agrônomo,
+      Estes números vêm de satélite e histórico climático regional. Eles não substituem a avaliação do seu agrônomo,
       que conhece o solo, o histórico de manejo e os preços locais. Converse com ele antes de decidir.</p>
   </div>
 </section>
@@ -292,7 +292,7 @@ tailwind.config = {
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
     <div class="flex items-center gap-2">
       <i data-lucide="sprout" class="w-4 h-4 text-agro-700"></i>
-      <span><strong class="text-slate-700">Field Shift</strong> — NASA Space Apps Challenge 2026 · "Field Shift: Adapting Farms with NASA Data"</span>
+      <span><strong class="text-slate-700">Field Shift</strong> · NASA Space Apps Challenge 2026 · "Field Shift: Adapting Farms with NASA Data"</span>
     </div>
     <span>Dados: NASA MODIS · NASA POWER · GPM/IMERG · SRTM · ESA Sentinel-2 · Satélite: Esri World Imagery</span>
   </div>
@@ -524,7 +524,7 @@ function renderRainGauge(sowingISO) {
     `<strong>Quando as chuvas costumam acabar:</strong> em metade dos últimos ${ro.n_years} anos, as chuvas
     cessaram por volta de <strong>${fmtDay(ro.cessation.p50)}</strong>
     (entre ${fmtDay(ro.cessation.p10)} e ${fmtDay(ro.cessation.p90)} em 80% dos anos).
-    Plantar perto desse limite significa terminar o ciclo no seco — por isso as curvas desabam ao longo de março.
+    Plantar perto desse limite significa terminar o ciclo no seco. Por isso as curvas desabam ao longo de março.
     <em>Estas são frequências históricas (NASA POWER, 2000–2026), não uma previsão do tempo.</em>`;
 }
 
@@ -628,7 +628,7 @@ function renderCards() {
         <p><strong class="text-slate-800">Por quê:</strong> ${txt.why}</p>
         <p><strong class="text-slate-800">Evidência:</strong> ${txt.evidence}</p>
         ${r.id === "cover_crotalaria" && fieldSpots.length ? `
-        <p class="text-rose-700"><strong>🛰️ Evidência deste talhão:</strong> ${fieldSpots.length === 1 ? "1 zona" : fieldSpots.length + " zonas"} de baixo vigor recorrente detectada${fieldSpots.length === 1 ? "" : "s"} por satélite (NDVI anômalo no mesmo lugar em ≥3 safras) — padrão compatível com problema de solo (nematoide, compactação ou fertilidade). A crotalária é supressora de nematoides; recomendamos também amostragem de solo direcionada nas zonas marcadas no mapa.</p>` : ""}
+        <p class="text-rose-700"><strong>🛰️ Evidência deste talhão:</strong> ${fieldSpots.length === 1 ? "1 zona" : fieldSpots.length + " zonas"} de baixo vigor recorrente detectada${fieldSpots.length === 1 ? "" : "s"} por satélite (NDVI anômalo no mesmo lugar em 3 ou mais safras), padrão compatível com problema de solo (nematoide, compactação ou fertilidade). A crotalária é supressora de nematoides. Recomendamos também amostragem de solo direcionada nas zonas marcadas no mapa.</p>` : ""}
         <p><strong class="text-slate-800">Benefícios:</strong> ${(txt.benefits || []).join("; ")}</p>
         <p><strong class="text-slate-800">O que não sabemos:</strong> ${(txt.gaps || []).join("; ")}</p>
         <p><strong class="text-slate-800">Riscos:</strong> ${(txt.risks || []).join("; ")}</p>
@@ -698,7 +698,7 @@ function renderFarmView(ctl) {
             ? `Melhor talhão: <strong>${r.best.fid}</strong> (${r.best.score}) · Pior: <strong>${r.worst.fid}</strong> (${r.worst.score})`
             : `Score igual em todos os talhões`}</p>`}
       ${!r.fullyBlocked && blockedHa
-        ? `<p class="text-[11px] font-bold text-rose-600">⚠ Bloqueada em ${blockedHa}: ${r.blocked[0].reason} — média calculada só nos talhões restantes</p>` : ""}
+        ? `<p class="text-[11px] font-bold text-rose-600">⚠ Bloqueada em ${blockedHa}: ${r.blocked[0].reason} (média calculada só nos talhões restantes)</p>` : ""}
     </div>`;
   }).join("");
 
@@ -777,9 +777,9 @@ function renderProductivity(id) {
     const cls = d < -5 ? "text-rose-700" : d > 5 ? "text-agro-700" : "text-slate-800";
     head.innerHTML = `Na safra <strong>${HIGHLIGHT}</strong>, ${id} acumulou
       <strong class="${cls}">${Math.abs(d).toFixed(1)}% ${word}</strong> biomassa (NDVI) que
-      sua média de <strong>${p.n_seasons} safras</strong>${Math.abs(d) <= 5 ? " — dentro do normal" : ""}.`;
+      sua média de <strong>${p.n_seasons} safras</strong>${Math.abs(d) <= 5 ? ", dentro do normal" : ""}.`;
   } else {
-    head.textContent = "Safra em andamento — integral ainda incompleta.";
+    head.textContent = "Safra em andamento, integral ainda incompleta.";
   }
 
   document.getElementById("prod-history").innerHTML = p.seasons.map(s => {
@@ -806,8 +806,8 @@ function renderSpots(id) {
   const totalHa = sp.reduce((a, f) => a + (f.properties.area_ha || 0), 0);
   document.getElementById("spots-headline").innerHTML =
     `O satélite encontrou <strong>${sp.length === 1 ? "1 zona" : sp.length + " zonas"}</strong> deste talhão com
-     NDVI anômalo <strong>no mesmo lugar em 3+ safras</strong> (${totalHa.toFixed(1)} ha no total) —
-     não é azar de uma safra, é um padrão que se repete.`;
+     NDVI anômalo <strong>no mesmo lugar em 3 ou mais safras</strong> (${totalHa.toFixed(1)} ha no total).
+     Não é azar de uma safra, é um padrão que se repete.`;
   document.getElementById("spots-list").innerHTML = sp.map((f, i) => {
     const p = f.properties;
     return `<span class="px-2 py-1 rounded-lg border bg-rose-100 text-rose-800 border-rose-200 text-[10px] font-bold"
@@ -931,7 +931,7 @@ function renderCalibResult(id, p) {
     📏 <strong>Estimativa calibrada ${CALIB_TARGET}:</strong>
     <span class="text-base font-extrabold text-agro-800">${est.toFixed(1)} sc/ha</span>
     ${unc != null ? `<span class="text-slate-500">(± ${unc.toFixed(1)} sc/ha)</span>` : ""}
-    — ${quality}.
+    (${quality}).
     ${yields[CALIB_TARGET] != null ? `Você registrou <strong>${yields[CALIB_TARGET]} sc/ha</strong> nessa safra
       (diferença de ${Math.abs(est - yields[CALIB_TARGET]).toFixed(1)} sc/ha).` : ""}</p>
     <p class="text-[10px] text-slate-500 italic mt-1">Regressão linear simples (produtividade ~ integral de NDVI) feita no seu navegador.
