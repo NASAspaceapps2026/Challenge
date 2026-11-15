@@ -268,7 +268,7 @@ async function loadData() {
       return await r.json();
     } catch (e) { return fallback; }
   };
-  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology] =
+  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots] =
     await Promise.all([
       get("fields.json", { features: [] }),
       get("ndvi.json", {}),
@@ -278,8 +278,9 @@ async function loadData() {
       get("pests.json", []),
       get("strategies.json", null), // TD.2 — pode ainda não existir
       get("phenology.json", {}),
+      get("spots.json", { type: "FeatureCollection", features: [] }), // TG.1
     ]);
-  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology };
+  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology, spots };
 }
 
 /* ------------------------------------------------ mapa */
@@ -296,6 +297,21 @@ function initMap() {
       lyr.bindTooltip(`<strong>${f.properties.id}</strong> · ${Math.round(f.properties.area_ha || 0)} ha`, { sticky: true });
     },
   }).addTo(map);
+  // TG.1 — recurrent low-vigor zones (honest label: never "disease detected")
+  if ((S.data.spots.features || []).length) {
+    L.geoJSON(S.data.spots, {
+      style: { color: "#dc2626", weight: 1.5, dashArray: "4 3", fillColor: "#ef4444", fillOpacity: 0.35 },
+      onEachFeature: (f, lyr) => {
+        const p = f.properties;
+        lyr.bindTooltip(
+          `<strong>Zona de baixo vigor recorrente</strong> · ${p.field_id}<br>` +
+          `NDVI anômalo em ${p.seasons_low} de ${p.n_seasons} safras (${p.area_ha} ha).<br>` +
+          `Padrão compatível com problema de solo (nematoide, compactação ou fertilidade).<br>` +
+          `<em>Recomendação: amostragem de solo direcionada aqui.</em>`,
+          { sticky: true });
+      },
+    }).addTo(map);
+  }
   if ((S.data.fields.features || []).length) map.fitBounds(layer.getBounds().pad(0.15));
   else map.setView([-12.545, -55.536], 12);
 }
@@ -376,7 +392,10 @@ function renderCards() {
     ["p-nematode", "nematode"], ["p-leafhopper", "corn_leafhopper"], ["p-armyworm", "fall_armyworm"],
   ].filter(([el]) => document.getElementById(el).checked).map(([, p]) => p);
 
+  const fieldSpots = (S.data.spots.features || []).filter(f => f.properties.field_id === S.fieldId);
+
   const ranked = FieldShiftScoring.scoreStrategies({
+    recurrentSpots: fieldSpots.length > 0,
     sowingISO: sowing,
     scenario: S.scenario,
     weights: {
@@ -435,6 +454,8 @@ function renderCards() {
       <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
         <p><strong class="text-slate-800">Por quê:</strong> ${txt.why}</p>
         <p><strong class="text-slate-800">Evidência:</strong> ${txt.evidence}</p>
+        ${r.id === "cover_crotalaria" && fieldSpots.length ? `
+        <p class="text-rose-700"><strong>🛰️ Evidência deste talhão:</strong> ${fieldSpots.length === 1 ? "1 zona" : fieldSpots.length + " zonas"} de baixo vigor recorrente detectada${fieldSpots.length === 1 ? "" : "s"} por satélite (NDVI anômalo no mesmo lugar em ≥3 safras) — padrão compatível com problema de solo (nematoide, compactação ou fertilidade). A crotalária é supressora de nematoides; recomendamos também amostragem de solo direcionada nas zonas marcadas no mapa.</p>` : ""}
         <p><strong class="text-slate-800">Benefícios:</strong> ${(txt.benefits || []).join("; ")}</p>
         <p><strong class="text-slate-800">O que não sabemos:</strong> ${(txt.gaps || []).join("; ")}</p>
         <p><strong class="text-slate-800">Riscos:</strong> ${(txt.risks || []).join("; ")}</p>

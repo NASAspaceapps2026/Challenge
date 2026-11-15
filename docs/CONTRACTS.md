@@ -99,6 +99,13 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 - Expected files: `fields.json` (from `fields.geojson` + `fields_attributes.csv`), `harvest_<field_id>.json`, `success_table.json`, `strategies.json`.
 - **Rule:** the frontend never reads a `.csv` directly — only JSON under `web/data/`. Keeps TE.1 decoupled from the engine's output format.
 
+### `data/spots_<field_id>.geojson` / `web/data/spots.json`
+- **Produced by:** TG.1 (`engine/low_vigor_spots.py`)
+- **Format:** GeoJSON `FeatureCollection` of recurrent low-vigor zone polygons. `spots.json` is all fields merged into one collection.
+- **Properties per feature:** `field_id` (e.g. `"T2"`), `seasons_low` (int, seasons with NDVI z < −1 at this spot), `n_seasons` (int, seasons with valid data, currently 5: 2021/22–2025/26), `area_ha` (float, 2 decimals).
+- **Consumed by:** the Leaflet map (red dashed overlay) and the scoring (`recurrentSpots: true` gives `cover_crotalaria` a +8 bonus).
+- **Honest labeling (binding):** never present as "disease detected" — always "recurrent low-vigor zone, pattern consistent with a soil problem; recommendation: targeted soil sampling".
+
 ---
 
 ## Validation (Phase F)

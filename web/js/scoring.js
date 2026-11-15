@@ -94,6 +94,9 @@ function scoreStrategies(inputs) {
 
     let bonus = 0;
     if (c.cattle && id === "corn_brachiaria") bonus = 5; // pasture value
+    // TG.1 — field has recurrent low-vigor zones (pattern consistent with a
+    // soil problem, e.g. nematodes): crotalaria is a nematode suppressor.
+    if (inputs.recurrentSpots && id === "cover_crotalaria") bonus += 8;
 
     const score01 =
       (weights.income * (s.income / 100) +

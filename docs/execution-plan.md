@@ -62,7 +62,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TE.4 — All fields + polish — done (Vinicius; all 7 fields verified in web/data, 2025/26 replay highlight (mean error 6.0d), glossary tooltips, real-harvest marker on NDVI chart; still needs one manual browser pass)
 - [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
 - [x] TF.2 — Deploy — done (Vinicius; `.github/workflows/deploy-pages.yml` publishes `web/` to GitHub Pages on every push to main; Pages source set to "GitHub Actions" in repo settings)
-- [ ] TG.1 — Recurrent low-vigor spots per field — **Vinicius**
+- [x] TG.1 — Recurrent low-vigor spots per field — done (Vinicius; `engine/low_vigor_spots.py` → 7 zones in T1/T2/T4/T5, map overlay + crotalaria evidence + +8 scoring bonus)
 - [ ] TG.2 — "Rain left in the season" gauge (CHIRPS/POWER climatology) — **TBD**
 - [ ] TG.3 — Relative productivity per field (NDVI integral vs own history) — **Vinicius**
 - [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
