@@ -34,7 +34,7 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 ### `data/ndvi_<field_id>.csv`
 - **Produced by:** TA.1 — **Consumed by:** TB.1
 - **Columns:** `date, ndvi_raw, ndvi_smooth`
-- **Notes:** `ndvi_smooth` is added by TB.1, so this file's schema grows after Phase B; until then `ndvi_smooth` may be absent.
+- **Notes:** `ndvi_smooth` is added by TB.1, so this file's schema grows after Phase B; until then `ndvi_smooth` may be absent. **After TB.1, `date` becomes a full daily series** (2019-01-01 → latest available date, one row per day, no gaps) instead of the irregular satellite-pass dates TA.1 produced — needed so TB.2's threshold-crossing detection and later growing-degree-day sums (TB.3) can walk the series day by day. `ndvi_raw` is left blank on days with no actual satellite observation; `ndvi_smooth` is filled for every day (Savitzky-Golay over the linearly time-interpolated raw series, with isolated single-point cloud-slip spikes dropped first).
 
 ### `data/climate_daily.csv`
 - **Produced by:** TA.2 — **Consumed by:** TB.3, TC.2
@@ -47,6 +47,7 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 ### `data/phenology_<field_id>.csv`
 - **Produced by:** TB.2 — **Consumed by:** TB.3
 - **Columns:** `season, emergence_date, peak_date, harvest_date`
+- **Notes:** `season` is `YYYY/YY` (e.g. `2024/25`, Sep–Oct YYYY planting → Jan–Feb YY harvest). One row per field per season, oldest first, including the most recent (possibly still-growing) season. `peak_date`/`harvest_date` are blank when that stage hasn't happened yet in the data (season in progress) — `emergence_date` is never blank for a row that exists.
 
 ### `data/harvest_pred_<field_id>.csv`
 - **Produced by:** TB.3 — **Consumed by:** TD.3, `web/data` export (TE.2)
@@ -59,11 +60,12 @@ All dates are ISO 8601 (`YYYY-MM-DD`). All CSVs are UTF-8, comma-separated, head
 ### `data/success_table.csv`
 - **Produced by:** TC.2 — **Consumed by:** TD.3
 - **Columns:** `crop, sowing_date, scenario, success_prob`
-- **Notes:** `scenario` ∈ `{nino, nina, neutral}`. `success_prob` ∈ `[0, 1]`.
+- **Notes:** `scenario` ∈ `{all, nino, nina, neutral}` (`all` = every historical year — the frontend's default before the farmer picks an ENSO filter). `success_prob` ∈ `[0, 1]`. `sowing_date` uses year **2026** (the decision season), Jan 1 → Mar 27 in 5-day steps.
 
 ### `data/bare_soil_<field_id>.csv`
 - **Produced by:** TC.3 — **Consumed by:** TD.3
 - **Columns:** `strategy, year, bare_days`
+- **Notes:** `strategy` ∈ `{current_corn, corn_brachiaria, sorghum_millet, cover_crotalaria}` — these ids are canonical and must match the `id` field in `web/data/strategies.json` (TD.2). Observed years 2019–2026; only `current_corn` is directly observed, the others are rule-based estimates (see `engine/bare_soil.py`).
 
 ---
 

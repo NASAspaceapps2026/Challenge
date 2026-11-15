@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Shift | Janela de colheita e sucessão com dados NASA</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Inter', 'sans-serif'] },
+    colors: { agro: {
+      950:'#0a2216', 900:'#143d29', 800:'#1b5438', 700:'#236e49',
+      600:'#2e8b5c', 500:'#3da872', 100:'#e6f5ed', 50:'#f3faf6',
+    }}
+  }}
+}
+</script>
+<style>
+  #agro-map { height: 420px; width: 100%; z-index: 10; }
+  .leaflet-control-attribution { font-size: 10px !important; background: rgba(255,255,255,.8) !important; }
+  input[type=range] { accent-color: #236e49; }
+  .gloss { border-bottom: 1px dotted #64748b; cursor: help; }
+</style>
+</head>
+<body class="bg-slate-50 font-sans">
+
+<!-- CABEÇALHO -->
+<header class="relative overflow-hidden bg-agro-950 text-white shadow-xl border-b border-agro-700/60">
+  <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=85"
+       onerror="this.onerror=null; this.src='https://placehold.co/1920x400/143d29/ffffff?text=Field+Shift';"
+       alt="Lavoura ao amanhecer" class="absolute inset-0 w-full h-full object-cover object-center scale-105">
+  <div class="absolute inset-0 bg-gradient-to-br from-agro-950/90 via-agro-900/85 to-agro-800/80"></div>
+  <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-500/25 backdrop-blur-md p-2.5 rounded-xl border border-emerald-300/40 shadow-md">
+          <i data-lucide="sprout" class="w-7 h-7 text-emerald-300"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Field <span class="text-emerald-400">Shift</span></h1>
+            <span class="bg-emerald-500/25 text-emerald-200 border border-emerald-300/40 text-[11px] font-bold px-2.5 py-0.5 rounded-full">NASA Space Apps 2026</span>
+          </div>
+          <p class="text-xs text-emerald-50/90">Quando sai a soja — e o que plantar depois. Sorriso, MT · dados MODIS, POWER, GPM, SRTM + Sentinel-2</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <span class="flex items-center gap-1.5 bg-agro-950/55 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-medium">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Fazenda demonstrativa · 7 talhões
+        </span>
+      </div>
+    </div>
+    <!-- Seletor de talhões -->
+    <div class="mt-5 flex flex-wrap items-center gap-1.5">
+      <span class="text-xs text-emerald-100 font-bold mr-1">Escolha o talhão:</span>
+      <div id="field-chips" class="flex flex-wrap gap-1.5"></div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+<!-- 1. MAPA + JANELA DE COLHEITA -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+  <section class="lg:col-span-7 bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+    <div class="flex items-center gap-2.5 mb-3">
+      <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="satellite" class="w-6 h-6"></i></div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900">Os talhões vistos do satélite</h3>
+        <p class="text-xs text-slate-500">Clique em um talhão no mapa para analisá-lo</p>
+      </div>
+    </div>
+    <div class="rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner bg-slate-900">
+      <div id="agro-map"></div>
+    </div>
+  </section>
+
+  <section class="lg:col-span-5 bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3.5 mb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="p-2 bg-amber-100 text-amber-700 rounded-xl"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
+        <div>
+          <h3 class="text-lg font-extrabold text-slate-900">Janela de colheita — <span id="sel-field-name">T1</span></h3>
+          <p class="text-xs text-slate-500">Previsão a partir da curva NDVI do próprio talhão</p>
+        </div>
+      </div>
+      <span id="harvest-provisional-badge" class="hidden bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-1 rounded-full">estimativa provisória</span>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2.5 mb-4 text-center">
+      <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 10% dos anos semelhantes, a colheita saiu antes desta data">Otimista (P10)</span></span>
+        <span id="harvest-p10" class="text-lg font-extrabold text-agro-800">—</span>
+      </div>
+      <div class="bg-agro-100 border-2 border-agro-600 rounded-xl p-3">
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Data mediana: metade dos anos semelhantes colheu antes, metade depois">Esperada (P50)</span></span>
+        <span id="harvest-p50" class="text-xl font-extrabold text-agro-950">—</span>
+      </div>
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 90% dos anos semelhantes a colheita já tinha saído nesta data — cenário de atraso">Pessimista (P90)</span></span>
+        <span id="harvest-p90" class="text-lg font-extrabold text-amber-800">—</span>
+      </div>
+    </div>
+
+    <p class="text-xs text-slate-600 mb-3 leading-relaxed">
+      <strong>O que isso significa:</strong> há 50% de chance de a soja deste talhão sair antes de
+      <strong id="harvest-p50-inline">—</strong>. Essa data define quantos dias de chuva restam
+      para a cultura seguinte — e é isso que o ranking abaixo usa.
+    </p>
+
+    <div id="replay-box" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
+      <span class="font-extrabold text-agro-800">✓ Replay 2025/26 — a previsão funcionou?</span>
+      <p class="mt-1">Em <strong>15/dez/2025</strong>, com a soja ainda no campo, dissemos que este talhão colheria por volta de
+        <strong id="replay-pred">—</strong>. O satélite detectou a colheita real em
+        <strong id="replay-actual">—</strong> — diferença de <strong id="replay-err">—</strong>.
+        Média dos 7 talhões: <strong id="replay-mean">—</strong> de erro.</p>
+    </div>
+
+    <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+        <span class="text-[10px] font-semibold text-slate-500 block">Área</span>
+        <span id="field-area" class="text-sm font-extrabold text-slate-900">—</span>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+        <span class="text-[10px] font-semibold text-slate-500 block">Declividade</span>
+        <span id="field-slope" class="text-sm font-extrabold text-slate-900">—</span>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
+        <span class="text-[10px] font-semibold text-slate-500 block gloss" title="Dias por ano com o solo descoberto entre a colheita e o próximo plantio (manejo atual)">Solo nu (média/ano)</span>
+        <span id="field-bare" class="text-sm font-extrabold text-slate-900">—</span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 2. CURVA NDVI -->
+<section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+    <div class="flex items-center gap-2.5">
+      <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="activity" class="w-6 h-6"></i></div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900">A vida da lavoura, safra a safra (<span class="gloss" title="Índice de vegetação por satélite (0 a 1): mede o quão verde e vigorosa está a lavoura">NDVI</span>)</h3>
+        <p class="text-xs text-slate-500">A curva sobe quando a soja cresce e cai quando madura. A faixa âmbar é a janela de colheita prevista desta safra.</p>
+      </div>
+    </div>
+    <span class="text-[11px] text-slate-400">Sentinel-2 + MODIS, suavizado</span>
+  </div>
+  <div id="ndvi-chart" class="w-full overflow-x-auto"></div>
+</section>
+
+<!-- 3. CONTROLES DO PRODUTOR -->
+<section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+  <div class="flex items-center gap-2.5 mb-4">
+    <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="sliders-horizontal" class="w-6 h-6"></i></div>
+    <div>
+      <h3 class="text-lg font-extrabold text-slate-900">Ajuste à sua realidade</h3>
+      <p class="text-xs text-slate-500">O ranking recalcula na hora — tudo roda no seu navegador</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+      <label class="text-xs font-extrabold text-slate-700 block mb-1">E se a colheita atrasar?</label>
+      <input id="ctl-slip" type="range" min="-10" max="30" value="0" step="1" class="w-full">
+      <div class="text-xs text-slate-600 mt-1">Deslocar <strong id="ctl-slip-val">0 dias</strong> → plantio da sucessão em <strong id="ctl-sowing-date">—</strong></div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+      <label class="text-xs font-extrabold text-slate-700 block mb-2">Cenário climático</label>
+      <div id="ctl-scenario" class="flex flex-wrap gap-1.5">
+        <button data-scen="all" class="scen-btn">Todos os anos</button>
+        <button data-scen="nina" class="scen-btn">La Niña</button>
+        <button data-scen="nino" class="scen-btn">El Niño</button>
+        <button data-scen="neutral" class="scen-btn">Neutro</button>
+      </div>
+      <p class="text-[11px] text-slate-500 mt-2">Filtra os 26 anos de histórico (índice ONI/NOAA)</p>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+      <label class="text-xs font-extrabold text-slate-700 block mb-1">Minhas prioridades</label>
+      <div class="space-y-1.5 text-[11px] font-semibold text-slate-600">
+        <div>Renda <input id="w-income" type="range" min="0" max="100" value="50" class="w-full"></div>
+        <div>Proteção do solo <input id="w-soil" type="range" min="0" max="100" value="50" class="w-full"></div>
+        <div>Menos risco <input id="w-risk" type="range" min="0" max="100" value="50" class="w-full"></div>
+      </div>
+    </div>
+
+    <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 space-y-1.5">
+      <label class="text-xs font-extrabold text-slate-700 block">Minha fazenda</label>
+      <label class="flex items-center gap-2"><input id="c-cattle" type="checkbox" class="accent-agro-700"> Tenho gado (integração)</label>
+      <label class="flex items-center gap-2"><input id="c-contract" type="checkbox" class="accent-agro-700"> Contrato de milho</label>
+      <label class="text-xs font-extrabold text-slate-700 block pt-1">Pragas conhecidas</label>
+      <label class="flex items-center gap-2"><input id="p-nematode" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Verme microscópico de solo que ataca raízes; crotalária e braquiária ajudam a suprimir">Nematoide</span></label>
+      <label class="flex items-center gap-2"><input id="p-leafhopper" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Inseto que transmite os enfezamentos do milho; interromper a 'ponte verde' (milho vivo o ano todo) reduz a praga">Cigarrinha-do-milho</span></label>
+      <label class="flex items-center gap-2"><input id="p-armyworm" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Lagarta que ataca milho e sorgo; culturas de cobertura quebram o ciclo">Lagarta-do-cartucho</span></label>
+    </div>
+  </div>
+</section>
+
+<!-- 4. CARDS DE ESTRATÉGIA -->
+<section>
+  <div class="mb-4">
+    <span class="text-xs font-bold uppercase tracking-wider text-agro-700">O produto</span>
+    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">O que plantar depois da soja — ranqueado para este talhão</h3>
+    <p class="text-sm text-slate-600 mt-1">Cada card mostra por quê, com que evidência, benefícios, o que não sabemos e riscos.</p>
+  </div>
+  <div id="strategy-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+  <div class="mt-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+    <p class="text-xs text-amber-900 leading-relaxed"><strong>Ferramenta de apoio, não de decisão.</strong>
+      Estes números vêm de satélite e histórico climático regional — eles não substituem a avaliação do seu agrônomo,
+      que conhece o solo, o histórico de manejo e os preços locais. Converse com ele antes de decidir.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="bg-white border-t border-slate-200 mt-10 py-6">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+    <div class="flex items-center gap-2">
+      <i data-lucide="sprout" class="w-4 h-4 text-agro-700"></i>
+      <span><strong class="text-slate-700">Field Shift</strong> — NASA Space Apps Challenge 2026 · "Field Shift: Adapting Farms with NASA Data"</span>
+    </div>
+    <span>Dados: NASA MODIS · NASA POWER · GPM/IMERG · SRTM · ESA Sentinel-2 · Satélite: Esri World Imagery</span>
+  </div>
+</footer>
+
+<script src="js/scoring.js"></script>
+<script>
+lucide.createIcons();
+
+/* ------------------------------------------------ estado + utilitários */
+const S = {
+  fieldId: "T1",
+  slip: 0,
+  scenario: "all",
+  data: {},
+  TURNAROUND_DAYS: 7, // colheita -> plantio da sucessão
+};
+
+const fmtDay = iso => new Date(iso + "T12:00:00")
+  .toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+const addDays = (iso, n) => {
+  const d = new Date(iso + "T12:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+};
+const diffDays = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000);
+// actual satellite-detected harvest of the 2025/26 season (replay mode)
+const actualHarvest = id => {
+  const rows = (S.data.phenology || {})[id] || [];
+  const r = rows.find(s => s.season === "2025/26");
+  return r && r.harvest ? r.harvest : null;
+};
+
+async function loadData() {
+  const get = async (name, fallback) => {
+    try {
+      const r = await fetch("data/" + name);
+      if (!r.ok) throw new Error(name);
+      return await r.json();
+    } catch (e) { return fallback; }
+  };
+  const [fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology] =
+    await Promise.all([
+      get("fields.json", { features: [] }),
+      get("ndvi.json", {}),
+      get("harvest.json", {}),
+      get("success_table.json", {}),
+      get("bare_soil.json", {}),
+      get("pests.json", []),
+      get("strategies.json", null), // TD.2 — pode ainda não existir
+      get("phenology.json", {}),
+    ]);
+  S.data = { fields, ndvi, harvest, success, bareSoil, pests, strategies, phenology };
+}
+
+/* ------------------------------------------------ mapa */
+let map, fieldLayers = {};
+function initMap() {
+  map = L.map("agro-map", { zoomControl: true });
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    { attribution: "Satélite &copy; Esri, Maxar", maxZoom: 19 }).addTo(map);
+  const layer = L.geoJSON(S.data.fields, {
+    style: f => styleFor(f.properties.id),
+    onEachFeature: (f, lyr) => {
+      fieldLayers[f.properties.id] = lyr;
+      lyr.on("click", () => selectField(f.properties.id));
+      lyr.bindTooltip(`<strong>${f.properties.id}</strong> · ${Math.round(f.properties.area_ha || 0)} ha`, { sticky: true });
+    },
+  }).addTo(map);
+  if ((S.data.fields.features || []).length) map.fitBounds(layer.getBounds().pad(0.15));
+  else map.setView([-12.545, -55.536], 12);
+}
+const styleFor = id => ({
+  color: id === S.fieldId ? "#fbbf24" : "#34d399",
+  weight: id === S.fieldId ? 3 : 2,
+  fillColor: id === S.fieldId ? "#fbbf24" : "#10b981",
+  fillOpacity: id === S.fieldId ? 0.25 : 0.12,
+});
+
+/* ------------------------------------------------ gráfico NDVI (SVG) */
+function renderNdviChart() {
+  const series = S.data.ndvi[S.fieldId] || [];
+  const el = document.getElementById("ndvi-chart");
+  if (!series.length) {
+    el.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">Sem série NDVI para este talhão.</p>';
+    return;
+  }
+  const W = 1100, H = 240, M = { t: 16, r: 16, b: 28, l: 36 };
+  const t0 = Date.parse(series[0][0]), t1 = Date.parse(series[series.length - 1][0]);
+  const x = t => M.l + (W - M.l - M.r) * (t - t0) / (t1 - t0);
+  const y = v => M.t + (H - M.t - M.b) * (1 - v); // NDVI 0..1
+  const pts = series.map(([d, v]) => `${x(Date.parse(d)).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+
+  // banda da janela de colheita prevista (P10-P90) + linha P50 deslocada
+  const h = S.data.harvest[S.fieldId];
+  let band = "";
+  if (h) {
+    const xa = x(Date.parse(h.p10)), xb = x(Date.parse(h.p90));
+    const xm = x(Date.parse(addDays(h.p50, S.slip)));
+    if (xb > M.l && xa < W - M.r) {
+      band = `<rect x="${xa.toFixed(1)}" y="${M.t}" width="${Math.max(2, xb - xa).toFixed(1)}" height="${H - M.t - M.b}" fill="#f59e0b" opacity="0.15"/>
+        <line x1="${xm.toFixed(1)}" y1="${M.t}" x2="${xm.toFixed(1)}" y2="${H - M.b}" stroke="#d97706" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="${Math.min(xm + 5, W - 110).toFixed(1)}" y="${M.t + 14}" font-size="11" font-weight="700" fill="#92400e">colheita P50</text>`;
+    }
+    const act = actualHarvest(S.fieldId);
+    if (act) {
+      const xr = x(Date.parse(act));
+      if (xr > M.l && xr < W - M.r) {
+        band += `<line x1="${xr.toFixed(1)}" y1="${M.t}" x2="${xr.toFixed(1)}" y2="${H - M.b}" stroke="#15803d" stroke-width="2"/>
+          <text x="${Math.min(xr + 5, W - 110).toFixed(1)}" y="${M.t + 30}" font-size="11" font-weight="700" fill="#15803d">colheita real</text>`;
+      }
+    }
+  }
+  let grid = "";
+  for (const v of [0.2, 0.4, 0.6, 0.8]) {
+    grid += `<line x1="${M.l}" y1="${y(v)}" x2="${W - M.r}" y2="${y(v)}" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="${M.l - 6}" y="${y(v) + 4}" font-size="10" fill="#94a3b8" text-anchor="end">${v.toFixed(1)}</text>`;
+  }
+  for (let yr = new Date(t0).getFullYear() + 1; yr <= new Date(t1).getFullYear(); yr++) {
+    const xt = x(Date.parse(`${yr}-01-01`));
+    grid += `<line x1="${xt}" y1="${M.t}" x2="${xt}" y2="${H - M.b}" stroke="#f1f5f9" stroke-width="1"/>
+      <text x="${xt}" y="${H - 8}" font-size="10" fill="#94a3b8" text-anchor="middle">${yr}</text>`;
+  }
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img" aria-label="Série NDVI do talhão ${S.fieldId}">
+    ${grid}${band}
+    <polyline points="${pts}" fill="none" stroke="#236e49" stroke-width="2" stroke-linejoin="round"/>
+  </svg>`;
+}
+
+/* ------------------------------------------------ cards */
+function cardsText(id) {
+  const list = S.data.strategies; // textos completos vêm de strategies.json (TD.2)
+  if (Array.isArray(list)) {
+    const c = list.find(s => s.id === id);
+    if (c) return c;
+  }
+  return null;
+}
+
+function renderCards() {
+  const h = S.data.harvest[S.fieldId];
+  const sowing = h ? addDays(h.p50, S.slip + S.TURNAROUND_DAYS) : "2026-02-15";
+  document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
+
+  const feat = (S.data.fields.features || []).find(f => f.properties.id === S.fieldId);
+  const selectedPests = [
+    ["p-nematode", "nematode"], ["p-leafhopper", "corn_leafhopper"], ["p-armyworm", "fall_armyworm"],
+  ].filter(([el]) => document.getElementById(el).checked).map(([, p]) => p);
+
+  const ranked = FieldShiftScoring.scoreStrategies({
+    sowingISO: sowing,
+    scenario: S.scenario,
+    weights: {
+      income: +document.getElementById("w-income").value / 100,
+      soil: +document.getElementById("w-soil").value / 100,
+      risk: +document.getElementById("w-risk").value / 100,
+    },
+    selectedPests,
+    constraints: {
+      cattle: document.getElementById("c-cattle").checked,
+      cornContract: document.getElementById("c-contract").checked,
+    },
+    slopeDeg: feat ? feat.properties.slope_deg : 0,
+    bareSoil: S.data.bareSoil[S.fieldId],
+    successTable: S.data.success,
+    pests: S.data.pests,
+  });
+
+  const wrap = document.getElementById("strategy-cards");
+  wrap.innerHTML = ranked.map((r, i) => {
+    const txt = cardsText(r.id);
+    const prob = r.successProb === null ? "—" : Math.round(r.successProb * 100) + "%";
+    const bare = (S.data.bareSoil[S.fieldId] || {})[r.id];
+    const medal = r.disabled ? "" : (["🥇", "🥈", "🥉"][i] || "");
+    const dis = r.disabled;
+    return `
+    <article class="bg-white rounded-2xl border ${dis ? "border-slate-200 opacity-55" : i === 0 ? "border-2 border-agro-600 shadow-md" : "border-slate-200 shadow-sm"} p-5 flex flex-col gap-3">
+      <div class="flex items-start justify-between gap-2">
+        <div>
+          <h4 class="text-base font-extrabold text-slate-900">${medal} ${r.label}</h4>
+          ${dis ? `<p class="text-[11px] font-bold text-rose-600 mt-0.5">${r.reason}</p>` : ""}
+        </div>
+        <div class="text-right shrink-0">
+          <span class="text-2xl font-extrabold ${dis ? "text-slate-400" : "text-agro-800"}">${dis ? "—" : r.score}</span>
+          <span class="text-[10px] font-bold text-slate-400 block -mt-1">/100</span>
+        </div>
+      </div>
+      <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+        <div class="bg-agro-600 h-2 rounded-full transition-all duration-300" style="width:${dis ? 0 : r.score}%"></div>
+      </div>
+      <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
+          <span class="font-semibold text-slate-500 block gloss" title="Fração dos anos históricos em que choveu o suficiente para esta cultura plantada nesta data">Sucesso hídrico</span>
+          <span class="font-extrabold text-slate-900">${prob}</span>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
+          <span class="font-semibold text-slate-500 block gloss" title="Dias por ano com o solo descoberto, exposto a erosão e perda de água">Solo nu/ano</span>
+          <span class="font-extrabold text-slate-900">${bare != null ? bare + " dias" : "—"}</span>
+        </div>
+        <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
+          <span class="font-semibold text-slate-500 block">Efeito em pragas</span>
+          <span class="font-extrabold ${r.pestSum > 0 ? "text-agro-700" : r.pestSum < 0 ? "text-rose-600" : "text-slate-900"}">${r.pestSum > 0 ? "+" : ""}${r.pestSum || "0"}</span>
+        </div>
+      </div>
+      ${txt ? `
+      <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+        <p><strong class="text-slate-800">Por quê:</strong> ${txt.why}</p>
+        <p><strong class="text-slate-800">Evidência:</strong> ${txt.evidence}</p>
+        <p><strong class="text-slate-800">Benefícios:</strong> ${(txt.benefits || []).join("; ")}</p>
+        <p><strong class="text-slate-800">O que não sabemos:</strong> ${(txt.gaps || []).join("; ")}</p>
+        <p><strong class="text-slate-800">Riscos:</strong> ${(txt.risks || []).join("; ")}</p>
+      </div>` : `<p class="text-[11px] text-slate-400 italic">Card completo (por quê / evidência / riscos) em preparação.</p>`}
+    </article>`;
+  }).join("");
+}
+
+/* ------------------------------------------------ seleção e controles */
+function selectField(id) {
+  S.fieldId = id;
+  for (const [fid, lyr] of Object.entries(fieldLayers)) lyr.setStyle(styleFor(fid));
+  document.getElementById("sel-field-name").textContent = id;
+  document.querySelectorAll("#field-chips button").forEach(b =>
+    b.className = chipClass(b.dataset.id === id));
+
+  const h = S.data.harvest[id];
+  const set = (el, v) => document.getElementById(el).textContent = v;
+  if (h) {
+    set("harvest-p10", fmtDay(h.p10));
+    set("harvest-p50", fmtDay(addDays(h.p50, S.slip)));
+    set("harvest-p90", fmtDay(h.p90));
+    set("harvest-p50-inline", fmtDay(addDays(h.p50, S.slip)));
+    document.getElementById("harvest-provisional-badge").classList.toggle("hidden", !h.provisional);
+  } else {
+    ["harvest-p10", "harvest-p50", "harvest-p90", "harvest-p50-inline"].forEach(e => set(e, "—"));
+    document.getElementById("harvest-provisional-badge").classList.add("hidden");
+  }
+
+  // replay 2025/26: frozen P50 vs satellite-detected harvest
+  const act = actualHarvest(id);
+  const box = document.getElementById("replay-box");
+  if (h && act) {
+    box.classList.remove("hidden");
+    set("replay-pred", fmtDay(h.p50));
+    set("replay-actual", fmtDay(act));
+    const d = Math.abs(diffDays(h.p50, act));
+    set("replay-err", d + (d === 1 ? " dia" : " dias"));
+    let tot = 0, n = 0;
+    for (const [fid, hh] of Object.entries(S.data.harvest)) {
+      const a = actualHarvest(fid);
+      if (a && hh.p50) { tot += Math.abs(diffDays(hh.p50, a)); n++; }
+    }
+    set("replay-mean", n ? (tot / n).toFixed(1) + " dias" : "—");
+  } else {
+    box.classList.add("hidden");
+  }
+
+  const feat = (S.data.fields.features || []).find(f => f.properties.id === id);
+  set("field-area", feat && feat.properties.area_ha ? Math.round(feat.properties.area_ha) + " ha" : "—");
+  set("field-slope", feat && feat.properties.slope_deg != null ? feat.properties.slope_deg.toFixed(1) + "°" : "—");
+  const bs = S.data.bareSoil[id];
+  set("field-bare", bs && bs.current_corn != null ? bs.current_corn + " dias" : "—");
+
+  renderNdviChart();
+  renderCards();
+}
+
+const chipClass = active =>
+  "text-xs font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer " +
+  (active ? "bg-emerald-500 text-agro-950 border-emerald-300"
+          : "bg-agro-950/55 text-white border-white/25 hover:bg-agro-950/80");
+
+function initControls() {
+  const chips = document.getElementById("field-chips");
+  for (const f of S.data.fields.features || []) {
+    const b = document.createElement("button");
+    b.textContent = f.properties.id;
+    b.dataset.id = f.properties.id;
+    b.className = chipClass(f.properties.id === S.fieldId);
+    b.onclick = () => selectField(f.properties.id);
+    chips.appendChild(b);
+  }
+  document.getElementById("ctl-slip").oninput = e => {
+    S.slip = +e.target.value;
+    document.getElementById("ctl-slip-val").textContent =
+      (S.slip > 0 ? "+" : "") + S.slip + " dias";
+    selectField(S.fieldId);
+  };
+  document.querySelectorAll("#ctl-scenario .scen-btn").forEach(b => {
+    b.className = scenClass(b.dataset.scen === S.scenario);
+    b.onclick = () => {
+      S.scenario = b.dataset.scen;
+      document.querySelectorAll("#ctl-scenario .scen-btn").forEach(x =>
+        x.className = scenClass(x.dataset.scen === S.scenario));
+      renderCards();
+    };
+  });
+  for (const id of ["w-income", "w-soil", "w-risk", "c-cattle", "c-contract",
+                    "p-nematode", "p-leafhopper", "p-armyworm"]) {
+    document.getElementById(id).oninput = renderCards;
+  }
+}
+const scenClass = active =>
+  "scen-btn text-[11px] font-bold px-2.5 py-1.5 rounded-lg border transition cursor-pointer " +
+  (active ? "bg-agro-700 text-white border-agro-700"
+          : "bg-white text-slate-600 border-slate-200 hover:border-agro-600");
+
+/* ------------------------------------------------ boot */
+(async function () {
+  await loadData();
+  initMap();
+  initControls();
+  selectField(S.fieldId);
+  lucide.createIcons();
+})();
+</script>
+</body>
+</html>
