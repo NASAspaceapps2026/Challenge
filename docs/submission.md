@@ -212,10 +212,25 @@ Sentinel-2 periods in the harvest engine; GPM IMERG drives the historical
 water balance rainfall; SRTM gives the slope per field for the erosion
 component; Earthdata is the access portal.
 
-**Partner & other data** (list under References or Project Details, not under
-NASA Data): ESA Copernicus Sentinel-2 (10 m NDVI); NOAA ONI (ENSO
-classification); Embrapa / FAO-56 / ZARC (crop parameters, pest effects,
-sowing windows); IMEA (weekly harvest progress used for validation).
+## Space Agency Partner & Other Data
+
+Link Text + Link URL pairs, one row per link:
+
+| Link Text | Link URL |
+|---|---|
+| ESA Copernicus Sentinel-2 (10 m NDVI imagery) | https://dataspace.copernicus.eu/ |
+| NOAA Oceanic Nino Index (ENSO year classification) | https://origin.cpc.ncep.noaa.gov/products/analysis_monitoring/ensostuff/ONI_v5.php |
+| FAO Irrigation and Drainage Paper 56 (crop coefficients) | https://www.fao.org/4/x0490e/x0490e00.htm |
+| ZARC - Agricultural Climate Risk Zoning, MAPA (sowing windows) | https://www.gov.br/agricultura/pt-br/assuntos/riscos-seguro/programa-nacional-de-zoneamento-agricola-de-risco-climatico |
+| Embrapa technical literature (rotation, nematode and leafhopper management) | https://www.embrapa.br/ |
+| IMEA - Mato Grosso Institute of Agricultural Economics (harvest progress) | https://www.imea.com.br/ |
+| Google Earth Engine (satellite data processing) | https://earthengine.google.com/ |
+| Leaflet (interactive map library) | https://leafletjs.com/ |
+| Tailwind CSS (interface styling) | https://tailwindcss.com/ |
+| Lucide (interface icons) | https://lucide.dev/ |
+| Esri World Imagery (satellite basemap tiles) | https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9 |
+| Python, pandas and SciPy (data pipeline) | https://scipy.org/ |
+| Unsplash (header photograph, free license) | https://unsplash.com/ |
 
 ## Use of Artificial Intelligence
 
