@@ -128,6 +128,22 @@ tailwind.config = {
       <p class="mt-1" id="prod-headline">—</p>
       <div id="prod-history" class="flex flex-wrap gap-1.5 mt-2"></div>
       <p class="mt-1.5 text-[10px] text-slate-500 italic">Sinal relativo (integral de NDVI vs média do próprio talhão) — não é estimativa de sacas/ha.</p>
+
+      <!-- TG.4 — farmer's own yields → per-field calibration (localStorage only) -->
+      <div class="mt-2 pt-2 border-t border-amber-200">
+        <button id="calib-toggle" class="text-[11px] font-bold text-amber-800 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0">
+          ✍ Informe suas produtividades (sacas/ha) e calibre a estimativa deste talhão</button>
+        <div id="calib-form" class="hidden mt-2">
+          <p class="text-[10px] text-slate-600 mb-1.5">Digite o que você colheu em cada safra (sacas/ha, do seu caderno).
+            Com <strong>3+ safras</strong>, calibramos a curva do satélite para o seu talhão.
+            <strong>Seus dados ficam só neste navegador</strong> — nada é enviado a servidor algum.</p>
+          <div id="calib-inputs" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5"></div>
+          <div class="flex items-center gap-2 mt-1.5">
+            <button id="calib-clear" class="text-[10px] font-bold text-slate-500 underline cursor-pointer bg-transparent border-0 p-0">Limpar este talhão</button>
+          </div>
+        </div>
+        <div id="calib-result" class="hidden mt-2 bg-white border border-amber-300 rounded-lg p-2.5"></div>
+      </div>
     </div>
 
     <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
@@ -767,7 +783,135 @@ function renderProductivity(id) {
     return `<span class="px-2 py-1 rounded-lg border text-[10px] font-bold ${tone} ${hl ? "ring-2 ring-amber-400" : ""}"
       title="Integral NDVI ${s.ndvi_integral} em ${s.n_days} dias">${s.season}: ${d > 0 ? "+" : ""}${d.toFixed(0)}%</span>`;
   }).join("");
+
+  renderCalibration(id, p);
 }
+
+/* TG.4 — farmer's own yields → per-field calibration (localStorage, client-side only) */
+const CALIB_KEY = "fieldshift_yields";
+const CALIB_TARGET = "2025/26"; // season we estimate (last complete NDVI integral)
+
+function calibLoad() {
+  try {
+    const raw = localStorage.getItem(CALIB_KEY);
+    const v = raw ? JSON.parse(raw) : {};
+    return (v && typeof v === "object") ? v : {};
+  } catch (e) { return {}; }
+}
+function calibSave(all) {
+  try { localStorage.setItem(CALIB_KEY, JSON.stringify(all)); } catch (e) { /* page keeps working without storage */ }
+}
+
+function renderCalibration(id, p) {
+  const form = document.getElementById("calib-form");
+  const inputs = document.getElementById("calib-inputs");
+  const yields = calibLoad()[id] || {};
+  const seasons = p.seasons.filter(s => s.complete && s.ndvi_integral != null);
+
+  // one input per complete season, pre-filled from localStorage
+  inputs.innerHTML = seasons.map(s => `
+    <label class="flex items-center gap-1 text-[10px] text-slate-600">
+      <span class="w-14 font-bold">${s.season}</span>
+      <input type="number" min="0" max="150" step="0.1" data-season="${s.season}"
+        value="${yields[s.season] != null ? yields[s.season] : ""}"
+        placeholder="sc/ha"
+        class="calib-in w-full border border-slate-300 rounded-md px-1.5 py-1 text-[11px]">
+    </label>`).join("");
+
+  inputs.querySelectorAll(".calib-in").forEach(inp => {
+    inp.oninput = () => {
+      const all = calibLoad();
+      const mine = all[id] || {};
+      const v = parseFloat(inp.value);
+      if (isFinite(v) && v > 0) mine[inp.dataset.season] = v;
+      else delete mine[inp.dataset.season];
+      if (Object.keys(mine).length) all[id] = mine; else delete all[id];
+      calibSave(all);
+      renderCalibResult(id, p);
+    };
+  });
+
+  document.getElementById("calib-toggle").onclick = () => form.classList.toggle("hidden");
+  document.getElementById("calib-clear").onclick = () => {
+    const all = calibLoad();
+    delete all[id];
+    calibSave(all);
+    renderCalibration(id, p); // rebuild inputs empty → falls back to relative view
+  };
+
+  if (Object.keys(yields).length) form.classList.remove("hidden");
+  renderCalibResult(id, p);
+}
+
+function renderCalibResult(id, p) {
+  const box = document.getElementById("calib-result");
+  const yields = calibLoad()[id] || {};
+  const target = p.seasons.find(s => s.season === CALIB_TARGET && s.complete && s.ndvi_integral != null);
+
+  // pairs (ndvi integral, farmer yield) — training excludes the target season
+  const rows = p.seasons
+    .filter(s => s.complete && s.ndvi_integral != null && s.season !== CALIB_TARGET && yields[s.season] != null)
+    .map(s => ({ season: s.season, x: s.ndvi_integral, y: yields[s.season] }));
+  const pairs = rows.map(r => [r.x, r.y]);
+  const n = pairs.length;
+
+  if (n === 0) { box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+
+  if (n < 3) {
+    box.innerHTML = `<p class="text-[11px] text-slate-700">
+      <strong>${n} safra${n > 1 ? "s" : ""} informada${n > 1 ? "s" : ""}</strong> —
+      ${rows.map(r => `${r.season}: ${r.y} sc/ha (satélite: ${fmtPct(devOf(p, r.x))})`).join(" · ")}.
+      Informe <strong>pelo menos 3 safras</strong> para calibrarmos uma estimativa em sacas/ha.</p>`;
+    return;
+  }
+
+  // simple OLS: yield = a + b * ndvi_integral
+  const mx = pairs.reduce((a, pr) => a + pr[0], 0) / n;
+  const my = pairs.reduce((a, pr) => a + pr[1], 0) / n;
+  let sxx = 0, sxy = 0, syy = 0;
+  for (const [x, y] of pairs) { sxx += (x - mx) ** 2; sxy += (x - mx) * (y - my); syy += (y - my) ** 2; }
+  const b = sxx > 0 ? sxy / sxx : 0;
+  const a = my - b * mx;
+  const r2 = (syy > 0 && sxx > 0) ? (sxy * sxy) / (sxx * syy) : 0;
+  // residual std error (df = n-2); with n=3 this is 1 df — honest but wide
+  let sse = 0;
+  for (const [x, y] of pairs) sse += (y - (a + b * x)) ** 2;
+  const se = n > 2 ? Math.sqrt(sse / (n - 2)) : Infinity;
+
+  const quality = `com base em <strong>${n} safras que você informou</strong> (R² = ${r2.toFixed(2)})`;
+
+  if (b <= 0 || r2 < 0.4) {
+    box.innerHTML = `<p class="text-[11px] text-slate-700">
+      ⚠ <strong>A calibração não ficou boa o suficiente</strong> ${quality}:
+      suas produtividades não acompanham a curva do satélite neste talhão
+      (ex.: perdas por chuva na colheita ou pragas que o NDVI não enxerga).
+      Preferimos <strong>não exibir uma estimativa em sacas/ha</strong> a inventar um número —
+      use o índice relativo acima. Confira os valores ou adicione mais safras.</p>`;
+    return;
+  }
+
+  if (!target) {
+    box.innerHTML = `<p class="text-[11px] text-slate-700">Calibração ajustada ${quality},
+      mas a integral NDVI de ${CALIB_TARGET} ainda não está completa para este talhão.</p>`;
+    return;
+  }
+
+  const est = a + b * target.ndvi_integral;
+  const unc = isFinite(se) ? se * 1.5 : null; // ~ wide band; honest about few points
+  box.innerHTML = `<p class="text-[11px] text-slate-800 leading-relaxed">
+    📏 <strong>Estimativa calibrada ${CALIB_TARGET}:</strong>
+    <span class="text-base font-extrabold text-agro-800">${est.toFixed(1)} sc/ha</span>
+    ${unc != null ? `<span class="text-slate-500">(± ${unc.toFixed(1)} sc/ha)</span>` : ""}
+    — ${quality}.
+    ${yields[CALIB_TARGET] != null ? `Você registrou <strong>${yields[CALIB_TARGET]} sc/ha</strong> nessa safra
+      (diferença de ${Math.abs(est - yields[CALIB_TARGET]).toFixed(1)} sc/ha).` : ""}</p>
+    <p class="text-[10px] text-slate-500 italic mt-1">Regressão linear simples (produtividade ~ integral de NDVI) feita no seu navegador.
+    Seus dados nunca saem deste dispositivo.</p>`;
+}
+
+const devOf = (p, integral) => p.mean_integral ? (integral / p.mean_integral - 1) * 100 : null;
+const fmtPct = d => d == null ? "—" : (d > 0 ? "+" : "") + d.toFixed(0) + "%";
 
 const chipClass = active =>
   "text-xs font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer " +

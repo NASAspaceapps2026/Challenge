@@ -66,7 +66,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TG.2 — "Rain left in the season" gauge (POWER climatology) — done (Vinicius; `engine/rain_odds.py` → `data/rain_odds.csv` + `web/data/rain_odds.json`, gauge follows the slip slider; odds collapse through March as expected, median rain cessation Apr 22)
 - [x] TG.3 — Relative productivity per field (NDVI integral vs own history) — done (Vinicius; `engine/productivity.py` → `data/productivity_T*.csv` + `web/data/productivity.json`, panel box with 2025/26 highlighted vs the field's own mean; relative signal only, feeds TG.4)
 - [x] TG.5 — Farm-level recommendation (one succession crop for the whole farm) — done (Vinicius; "farm view" block in `web/index.html`: per-field `scoreStrategies` aggregated area-weighted by `area_ha`, best/worst-field spread shown, blocked strategies flagged per field, reacts to the same controls)
-- [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
+- [x] TG.4 — Farmer's own yield input → per-field calibration — done (Vinicius; form in the TG.3 productivity box in `web/index.html`, yields in `localStorage` only (try/catch everywhere), ≥3 seasons → OLS yield ~ NDVI integral with R² and ± shown, poor fit (R²<0.4 or slope≤0) shows an honest warning instead of a number; 2025/26 excluded from training and used as the estimate target)
 - [ ] TG.x — **Pending HTML update pass** (`web/index.html`) — manual browser review still owed: TE.4 polish check, surface TG.1 low-vigor spots more prominently in the page (not just map tooltip), and verify the TG.2 rain gauge renders/reacts correctly — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
 
