@@ -41,7 +41,7 @@ Everyone: exact file formats are law — see [CONTRACTS.md](CONTRACTS.md) before
 
 Owners for later phases are intentionally left as **TBD** — assign when that phase starts, based on who's free.
 
-- [ ] T0.1 — Accounts and access — *everyone*
+- [x] T0.1 — Accounts and access — *everyone*
 - [x] T0.2 — Repository and data contracts — done
 - [x] T0.3 — Choose the demo fields — done (7 fields, see `data/fields.geojson`)
 - [x] TA.1 — Export NDVI series — done
@@ -50,18 +50,22 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TB.1 — Smooth the NDVI — done (Vinicius; `engine/smooth_ndvi.py`, overwrote `data/ndvi_T*.csv` in place with a daily `ndvi_smooth` column)
 - [x] TB.2 — Detect emergence and peak — done (Vinicius; `engine/detect_phenology.py` → `data/phenology_T*.csv`)
 - [x] TB.3 — Predict the 2025/26 harvest — done (Vinicius; `engine/predict_harvest.py` → `data/harvest_pred_T*.csv`; checkpoint PASS: P50 frozen 2025-12-15, mean |error| 6.0d, worst 9d — see model note under TB.3)
-- [x] TC.1 — Parameterize candidate crops — done (Leo took over; `data/crops_params.csv`, provisional literature values — see `docs/crops-params-notes.md`, needs agronomy review)
+- [x] TC.1 — Parameterize candidate crops — done, reworked 2026-11-14 (Illia replaced Leo's provisional values with FAO-56-verified Kc/cycles — see `data/crop_parameter_sources.md`, which supersedes `docs/crops-params-notes.md`. Current CSV is a hybrid: Illia's values + Leo's corn window end (Feb 20), because Illia's Jan 31 lacks a verifiable SisZarc source — pending his confirmation, see the open question in `crop_parameter_sources.md`)
 - [x] TC.2 — Run the historical water balance — done (Leo; `engine/water_balance.py` -> `data/success_table.csv`, sanity checks pass)
 - [x] TC.3 — Bare-soil risk — done (Leo; `engine/bare_soil.py` -> `data/bare_soil_T*.csv`, ~100-110 observed bare days/yr)
 - [x] TD.1 — Pest table — done (Leo; `data/pests.csv`, sources in `docs/pests-notes.md`)
 - [x] TD.2 — Write the 4+ strategy cards — done (Vinicius; `web/data/strategies.json`, 4 cards with evidence from our own tables; note: `scoring.js` has its own hardcoded Portuguese labels — display name to be reconciled in review)
 - [x] TD.3 — Scoring function — done (Leo; `web/js/scoring.js`, pure client-side JS)
-- [ ] TE.1 — Page skeleton — **Zé**
+- [x] TE.1 — Page skeleton — **Zé**
 - [x] TE.2 — Connect real data — done (Leo; `engine/export_web_data.py` -> `web/data/*.json`, site fetches real data)
 - [x] TE.3 — Interactivity — done (Leo; slip slider, ENSO filter, weight sliders, constraint/pest checkboxes all live)
 - [x] TE.4 — All fields + polish — done (Vinicius; all 7 fields verified in web/data, 2025/26 replay highlight (mean error 6.0d), glossary tooltips, real-harvest marker on NDVI chart; still needs one manual browser pass)
 - [x] TF.1 — IMEA validation — done (Vinicius; `data/imea_weekly.csv` from IMEA press coverage + `engine/imea_validation.py` → `docs/imea_validation.png`; our curve runs ~16d ahead of the state-wide series, expected since Sorriso is an early-harvest region — see `docs/imea-notes.md`)
 - [x] TF.2 — Deploy — done (Vinicius; `.github/workflows/deploy-pages.yml` publishes `web/` to GitHub Pages on every push to main; Pages source set to "GitHub Actions" in repo settings)
+- [ ] TG.1 — Recurrent low-vigor spots per field — **Vinicius**
+- [ ] TG.2 — "Rain left in the season" gauge (CHIRPS/POWER climatology) — **TBD**
+- [ ] TG.3 — Relative productivity per field (NDVI integral vs own history) — **Vinicius**
+- [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
 
 ---
@@ -206,6 +210,41 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 
 ### TF.3 — Submission (start 8h before the deadline)
 - **How:** feature freeze → 30s video (script: problem → click a field → window → cards → slider → agronomist disclaimer) → project page on the platform (summary, NASA data used: MODIS, POWER, GPM, SRTM + Sentinel-2 partner data) → slides if the local event requires them → **submit 1h before the deadline.**
+
+---
+
+## PHASE G — Round 3 features (added 2026-11-15, after independent state-of-the-art research)
+
+Background: an unbiased research pass over 2024–2026 satellite-ag tools confirmed our core (NDVI harvest date → strategy ranking) matches recent literature (~5-day MAE for harvest-date detection from NDVI in MT fields, [doi:10.3390/rs17172927](https://doi.org/10.3390/rs17172927)) and found no existing tool showing a per-field window countdown + rain-duration odds. These two features extend that edge. Explicitly rejected as dishonest without ground truth: absolute yield (sacas/ha), disease *diagnosis* from imagery, field-level SMAP soil moisture, soil compaction.
+
+### TG.1 — Recurrent low-vigor spots per field
+- **Goal:** flag in-field zones whose NDVI is anomalously low **in the same place across multiple seasons** — the signature of persistent soil problems (nematode reboleiras, compaction, fertility gaps), as opposed to one-off noise (cloud, planting failure).
+- **How:** GEE export of per-pixel max-NDVI composite over a ~6-week peak window (Jan±3wk, handles cloud gaps) for the last 3–5 seasons; per season, z-score each pixel against its own field's mean (removes good-year/bad-year effect); count seasons with z < −1; export zones recurring in ≥3 seasons as GeoJSON → Leaflet overlay.
+- **Honest labeling (binding):** never "disease detected" — always "recurrent low-vigor zone: pattern consistent with a soil problem (nematode, compaction, fertility). Recommendation: targeted soil sampling here." Fields with recurrent zones boost crotalaria (nematode suppressor) in the strategy ranking — satellite evidence personalizes the recommendation.
+- **Output:** `data/spots_<field>.geojson` + map layer + a line in the strategy-card evidence.
+- **Done when:** at least one demo field shows a recurrent zone on the map with the honest label, and the crotalaria card cites it.
+
+### TG.2 — "Rain left in the season" gauge
+- **Goal:** show, per candidate sowing date, the historical odds that enough rain falls before the season ends — e.g. "sowing corn Feb 25: in ~35% of the last 25 years, rains ended before grain fill."
+- **How:** pure climatology from `climate_daily.csv` (2000→2026): precompute P(≥X mm after date D) and the rainy-season cessation-date distribution; render as a simple curve/gauge next to the strategy cards. No model, no forecast.
+- **Honest labeling (binding):** "historical odds", never "forecast/prediction".
+- **Output:** `data/rain_odds.csv` → `web/data/rain_odds.json` + UI gauge.
+- **Done when:** the gauge updates when the sowing-date slider moves and matches common sense (odds collapse through March).
+
+### TG.3 — Relative productivity per field
+- **Goal:** an honest productivity signal without ground truth: the seasonal NDVI integral (sum of daily `ndvi_smooth` between emergence and harvest) correlates with biomass/production, so each season can be compared against the field's own history.
+- **How:** ~20 lines of Python over the existing `ndvi_*.csv` + `phenology_*.csv`: integral per season per field → % deviation from the field's multi-season mean. Display: "this season T3 accumulated 12% less biomass than its 4-season average."
+- **Honest labeling (binding):** relative only — never convert to sacas/ha on our own (that needs calibration, which is TG.4's job).
+- **Output:** `data/productivity_<field>.csv` → `web/data/productivity.json` + a line on the field panel.
+- **Done when:** every demo field shows its seasonal deviation history and 2025/26 is flagged vs normal.
+
+### TG.4 — Farmer's own yield input → per-field calibration
+- **Goal:** let the farmer type in their recorded yields (sacas/ha per past season, per field) — data they often have in a notebook — and use it to calibrate TG.3's NDVI integral into an actual per-field yield estimate.
+- **How:** a small form on the field panel (stored in `localStorage`, no backend — wrap reads/writes in try/catch); with ≥3 seasons entered, fit a simple linear regression yield ~ NDVI integral in client-side JS and show the 2025/26 estimate with its uncertainty; with fewer, just show their numbers alongside the relative index.
+- **Why it matters for the pitch:** turns the yield limitation into a feature — "we don't invent numbers; when the data owner provides the reference, the satellite curve becomes a calibrated estimate for *their* field." Also a privacy story: the data never leaves the farmer's browser.
+- **Honest labeling (binding):** show the fit quality (e.g. "based on 4 seasons you entered"); if the regression is poor, say so instead of displaying a number.
+- **Output:** form + calibration logic in `web/js/` (consumes `productivity.json`; farmer data stays in `localStorage`).
+- **Done when:** entering 3+ plausible yields on a demo field produces a sane estimate, and clearing them falls back to the relative view.
 
 ---
 

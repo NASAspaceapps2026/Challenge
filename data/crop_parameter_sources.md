@@ -29,5 +29,6 @@
 *   **Source:** Official ZARC portal (Zoneamento Agrícola de Risco Climático) by MAPA (Ministério da Agricultura e Pecuária).
 *   **Query Parameters:** Safra 2026/2027, MT, Sorriso (or Lucas do Rio Verde), Solo Tipo 2/3.
 *   **Justification:** The window is formed from 10-day periods (decêndios) where the climatic risk of crop loss is 20% or 30% (green and yellow zones).
-    *   The end of the window for corn (February 28) reflects a strict limit — after this date, the risk exceeds 40% due to the end of the rainy season.
+    *   The end of the window for corn reflects a strict limit — after this date, the risk exceeds 40% due to the end of the rainy season.
+    *   **Open question (2026-11-15):** the Jan 31 corn window end originally in this file could not be confirmed against public references (IMEA/industry sources cite the ideal window closing ~Feb 20 in MT). The CSV currently uses **Feb 20** until the exact SisZarc query (municipality/decêndio/soil type) backing Jan 31 is shared — Illia, please post the SisZarc screenshot or parameters.
     *   Cover crops and sorghum are less demanding for moisture, so their ZARC windows are officially extended to mid-to-late March.
