@@ -9,10 +9,10 @@
  */
 
 const STRATEGIES = {
-  current_corn:     { crop: "corn",       income: 90, label: "Milho safrinha (atual)" },
-  corn_brachiaria:  { crop: "corn",       income: 85, label: "Milho + braquiária" },
-  sorghum_millet:   { crop: "sorghum",    income: 55, label: "Sorgo / milheto" },
-  cover_crotalaria: { crop: "crotalaria", income: 15, label: "Cobertura (crotalária)" },
+  current_corn:     { crop: "corn",       income: 90, label: "Second-crop corn (current)" },
+  corn_brachiaria:  { crop: "corn",       income: 85, label: "Corn + brachiaria" },
+  sorghum_millet:   { crop: "sorghum",    income: 55, label: "Sorghum / millet" },
+  cover_crotalaria: { crop: "crotalaria", income: 15, label: "Cover crop (crotalaria)" },
 };
 
 const DRY_SEASON_DAYS = 153; // May 1 .. Sep 30
@@ -89,7 +89,7 @@ function scoreStrategies(inputs) {
     let disabled = false, reason = "";
     const c = inputs.constraints || {};
     if (c.cornContract && s.crop !== "corn") {
-      disabled = true; reason = "Contrato de milho exige plantar milho";
+      disabled = true; reason = "A corn contract requires planting corn";
     }
 
     let bonus = 0;
