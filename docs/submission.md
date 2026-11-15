@@ -195,19 +195,27 @@ public sources.
 
 ## NASA Data
 
-- **MODIS (MOD09GQ/MOD13, Terra/Aqua)** — daily NDVI to gap-fill cloudy Sentinel-2
-  periods; basis of the harvest-date engine. https://modis.gsfc.nasa.gov/
-- **NASA POWER** — 26 years of daily Tmin/Tmax/radiation at the farm: degree-days
-  and ET0 for the water balance. https://power.larc.nasa.gov/
-- **GPM / IMERG** — daily rainfall driving the historical water balance.
-  https://gpm.nasa.gov/
-- **SRTM (SRTMGL1)** — slope per field → erosion component of the soil score.
-  https://www.earthdata.nasa.gov/data/instruments/srtm
+The platform asks for Link Text + Link URL pairs. Paste one row per link:
 
-**Partner & other data:** ESA Copernicus Sentinel-2 (10 m NDVI); NOAA ONI
-(El Niño classification); Embrapa / FAO-56 / ZARC (crop parameters, pest effects,
-sowing windows); IMEA (weekly harvest progress used to validate the regional
-prediction curve).
+| Link Text | Link URL |
+|---|---|
+| NASA POWER - Daily Agroclimatology Data (temperature, radiation) | https://power.larc.nasa.gov/ |
+| MODIS Vegetation Indices (MOD13Q1, Terra) | https://lpdaac.usgs.gov/products/mod13q1v061/ |
+| GPM IMERG - Global Precipitation Measurement | https://gpm.nasa.gov/data/imerg |
+| NASA SRTM - Shuttle Radar Topography Mission (SRTMGL1) | https://lpdaac.usgs.gov/products/srtmgl1v003/ |
+| NASA Earthdata | https://www.earthdata.nasa.gov/ |
+
+How each is used (keep for Project Details if a judge asks): POWER supplies 26
+years of daily temperature and radiation for degree-days and
+evapotranspiration; MODIS provides the daily NDVI that gap-fills cloudy
+Sentinel-2 periods in the harvest engine; GPM IMERG drives the historical
+water balance rainfall; SRTM gives the slope per field for the erosion
+component; Earthdata is the access portal.
+
+**Partner & other data** (list under References or Project Details, not under
+NASA Data): ESA Copernicus Sentinel-2 (10 m NDVI); NOAA ONI (ENSO
+classification); Embrapa / FAO-56 / ZARC (crop parameters, pest effects,
+sowing windows); IMEA (weekly harvest progress used for validation).
 
 ## Use of Artificial Intelligence
 
