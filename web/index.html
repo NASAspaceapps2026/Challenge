@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Field Shift | Janela de colheita e sucessão com dados NASA</title>
+<title>Field Shift | Harvest window and succession planning with NASA data</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -36,7 +36,7 @@ tailwind.config = {
 <header class="relative overflow-hidden bg-agro-950 text-white shadow-xl border-b border-agro-700/60">
   <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1920&q=85"
        onerror="this.onerror=null; this.src='https://placehold.co/1920x400/143d29/ffffff?text=Field+Shift';"
-       alt="Lavoura ao amanhecer" class="absolute inset-0 w-full h-full object-cover object-center scale-105">
+       alt="Crop field at sunrise" class="absolute inset-0 w-full h-full object-cover object-center scale-105">
   <div class="absolute inset-0 bg-gradient-to-br from-agro-950/90 via-agro-900/85 to-agro-800/80"></div>
   <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <div class="flex flex-wrap items-center justify-between gap-4">
@@ -49,18 +49,18 @@ tailwind.config = {
             <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Field <span class="text-emerald-400">Shift</span></h1>
             <span class="bg-emerald-500/25 text-emerald-200 border border-emerald-300/40 text-[11px] font-bold px-2.5 py-0.5 rounded-full">NASA Space Apps 2026</span>
           </div>
-          <p class="text-xs text-emerald-50/90">Quando sai a soja e o que plantar depois. Sorriso, MT · dados MODIS, POWER, GPM, SRTM + Sentinel-2</p>
+          <p class="text-xs text-emerald-50/90">When the soybean comes off and what to plant next. Sorriso, MT, Brazil · MODIS, POWER, GPM, SRTM + Sentinel-2 data</p>
         </div>
       </div>
       <div class="flex items-center gap-2 text-xs">
         <span class="flex items-center gap-1.5 bg-agro-950/55 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Fazenda demonstrativa · 11 talhões
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Demo farm · 11 fields
         </span>
       </div>
     </div>
     <!-- Seletor de talhões -->
     <div class="mt-5 flex flex-wrap items-center gap-1.5">
-      <span class="text-xs text-emerald-100 font-bold mr-1">Escolha o talhão:</span>
+      <span class="text-xs text-emerald-100 font-bold mr-1">Choose a field:</span>
       <div id="field-chips" class="flex flex-wrap gap-1.5"></div>
     </div>
   </div>
@@ -74,8 +74,8 @@ tailwind.config = {
     <div class="flex items-center gap-2.5 mb-3">
       <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="satellite" class="w-6 h-6"></i></div>
       <div>
-        <h3 class="text-lg font-extrabold text-slate-900">Os talhões vistos do satélite</h3>
-        <p class="text-xs text-slate-500">Clique em um talhão no mapa para analisá-lo</p>
+        <h3 class="text-lg font-extrabold text-slate-900">The fields seen from the satellite</h3>
+        <p class="text-xs text-slate-500">Click a field on the map to analyze it</p>
       </div>
     </div>
     <div class="rounded-2xl overflow-hidden border-2 border-slate-200 shadow-inner bg-slate-900">
@@ -88,59 +88,59 @@ tailwind.config = {
       <div class="flex items-center gap-2.5">
         <div class="p-2 bg-amber-100 text-amber-700 rounded-xl"><i data-lucide="calendar-clock" class="w-6 h-6"></i></div>
         <div>
-          <h3 class="text-lg font-extrabold text-slate-900">Janela de colheita · <span id="sel-field-name">T1</span></h3>
-          <p class="text-xs text-slate-500"><span class="gloss" title="Regressão da duração do ciclo sobre dois preditores conhecidos em 15/dez: chuva acumulada da primavera (NASA POWER) e dia de emergência detectado pela subida do NDVI. Validada com replay leave-one-season-out em 77 safras-talhão.">Previsão: chuva de primavera + emergência detectada por NDVI</span></p>
+          <h3 class="text-lg font-extrabold text-slate-900">Harvest window · <span id="sel-field-name">T1</span></h3>
+          <p class="text-xs text-slate-500"><span class="gloss" title="Regression of cycle length on two predictors known by Dec 15: accumulated spring rainfall (NASA POWER) and the emergence day detected from the NDVI rise. Validated with a leave-one-season-out replay over 77 field-seasons.">Prediction: spring rainfall + NDVI-detected emergence</span></p>
         </div>
       </div>
-      <span id="harvest-provisional-badge" class="hidden bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-1 rounded-full">estimativa provisória</span>
+      <span id="harvest-provisional-badge" class="hidden bg-amber-100 text-amber-800 border border-amber-200 text-[10px] font-bold px-2 py-1 rounded-full">provisional estimate</span>
     </div>
 
     <div class="grid grid-cols-3 gap-2.5 mb-4 text-center">
       <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3">
-        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 10% dos anos semelhantes, a colheita saiu antes desta data">Otimista (P10)</span></span>
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="In 10% of similar years, harvest came off before this date">Optimistic (P10)</span></span>
         <span id="harvest-p10" class="text-lg font-extrabold text-agro-800">—</span>
       </div>
       <div class="bg-agro-100 border-2 border-agro-600 rounded-xl p-3">
-        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Data mediana: metade dos anos semelhantes colheu antes, metade depois">Esperada (P50)</span></span>
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Median date: half of similar years harvested earlier, half later">Expected (P50)</span></span>
         <span id="harvest-p50" class="text-xl font-extrabold text-agro-950">—</span>
       </div>
       <div class="bg-amber-50 border border-amber-200 rounded-xl p-3">
-        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="Em 90% dos anos semelhantes a colheita já tinha saído nesta data. É o cenário de atraso">Pessimista (P90)</span></span>
+        <span class="text-[11px] font-bold text-slate-600 block"><span class="gloss" title="In 90% of similar years the harvest was already off by this date. This is the delay scenario">Pessimistic (P90)</span></span>
         <span id="harvest-p90" class="text-lg font-extrabold text-amber-800">—</span>
       </div>
     </div>
 
     <p class="text-xs text-slate-600 mb-3 leading-relaxed">
-      <strong>O que isso significa:</strong> há 50% de chance de a soja deste talhão sair antes de
-      <strong id="harvest-p50-inline">—</strong>. Essa data define quantos dias de chuva restam
-      para a cultura seguinte, e é isso que o ranking abaixo usa.
+      <strong>What this means:</strong> there is a 50% chance this field's soybean comes off before
+      <strong id="harvest-p50-inline">—</strong>. That date sets how many days of rain are left
+      for the next crop, and that is what the ranking below uses.
     </p>
 
     <div id="replay-box" class="hidden bg-emerald-50 border border-emerald-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-agro-800">✓ Replay 2025/26: a previsão funcionou?</span>
-      <p class="mt-1">Em <strong>15/dez/2025</strong>, com a soja ainda no campo, dissemos que este talhão colheria por volta de
-        <strong id="replay-pred">—</strong>. O satélite detectou a colheita real em
-        <strong id="replay-actual">—</strong>, uma diferença de <strong id="replay-err">—</strong>.
-        Média dos 11 talhões: <strong id="replay-mean">—</strong> de erro.</p>
+      <span class="font-extrabold text-agro-800">✓ 2025/26 replay: did the prediction work?</span>
+      <p class="mt-1">On <strong>Dec 15, 2025</strong>, with the soybean still in the field, we said this field would harvest around
+        <strong id="replay-pred">—</strong>. The satellite detected the actual harvest on
+        <strong id="replay-actual">—</strong>, a difference of <strong id="replay-err">—</strong>.
+        Average across the 11 fields: <strong id="replay-mean">—</strong> of error.</p>
     </div>
 
     <div id="prod-box" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-amber-800 gloss" title="Soma do NDVI diário entre emergência e colheita, um indicador de biomassa acumulada. Sinal RELATIVO: comparamos o talhão só com o histórico dele mesmo. Não convertemos em sacas/ha.">🌱 Produtividade relativa (biomassa por satélite)</span>
+      <span class="font-extrabold text-amber-800 gloss" title="Sum of daily NDVI between emergence and harvest, an indicator of accumulated biomass. RELATIVE signal: we compare the field only against its own history. We do not convert it into bags/ha.">🌱 Relative productivity (satellite biomass)</span>
       <p class="mt-1" id="prod-headline">—</p>
       <div id="prod-history" class="flex flex-wrap gap-1.5 mt-2"></div>
-      <p class="mt-1.5 text-[10px] text-slate-500 italic">Sinal relativo (integral de NDVI vs média do próprio talhão). Não é estimativa de sacas/ha.</p>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Relative signal (NDVI integral vs the field's own average). Not a bags/ha estimate.</p>
 
       <!-- TG.4 — farmer's own yields → per-field calibration (localStorage only) -->
       <div class="mt-2 pt-2 border-t border-amber-200">
         <button id="calib-toggle" class="text-[11px] font-bold text-amber-800 underline decoration-dotted cursor-pointer bg-transparent border-0 p-0">
-          ✍ Informe suas produtividades (sacas/ha) e calibre a estimativa deste talhão</button>
+          ✍ Enter your yields (bags/ha) and calibrate this field's estimate</button>
         <div id="calib-form" class="hidden mt-2">
-          <p class="text-[10px] text-slate-600 mb-1.5">Digite o que você colheu em cada safra (sacas/ha, do seu caderno).
-            Com <strong>3+ safras</strong>, calibramos a curva do satélite para o seu talhão.
-            <strong>Seus dados ficam só neste navegador</strong>: nada é enviado a servidor algum.</p>
+          <p class="text-[10px] text-slate-600 mb-1.5">Type what you harvested each season (bags/ha, from your own records).
+            With <strong>3+ seasons</strong>, we calibrate the satellite curve for your field.
+            <strong>Your data stays in this browser only</strong>: nothing is sent to any server.</p>
           <div id="calib-inputs" class="grid grid-cols-2 sm:grid-cols-3 gap-1.5"></div>
           <div class="flex items-center gap-2 mt-1.5">
-            <button id="calib-clear" class="text-[10px] font-bold text-slate-500 underline cursor-pointer bg-transparent border-0 p-0">Limpar este talhão</button>
+            <button id="calib-clear" class="text-[10px] font-bold text-slate-500 underline cursor-pointer bg-transparent border-0 p-0">Clear this field</button>
           </div>
         </div>
         <div id="calib-result" class="hidden mt-2 bg-white border border-amber-300 rounded-lg p-2.5"></div>
@@ -149,23 +149,23 @@ tailwind.config = {
 
     <!-- TG.1 — recurrent low-vigor zones, surfaced in the panel (not only map tooltip) -->
     <div id="spots-box" class="hidden bg-rose-50 border border-rose-200 rounded-xl p-3 mb-3 text-xs text-slate-700 leading-relaxed">
-      <span class="font-extrabold text-rose-800 gloss" title="Pixels com NDVI anômalo no mesmo lugar em 3 ou mais safras, um padrão espacial recorrente compatível com problema de solo. Bordas do talhão (faixa de 10 m) e feições lineares finas (estradas, rastros de máquina) são filtradas da análise. Honestidade: o satélite NÃO diagnostica a causa.">🛰️ Zonas de baixo vigor recorrente</span>
+      <span class="font-extrabold text-rose-800 gloss" title="Pixels with anomalous NDVI in the same place across 3 or more seasons, a recurring spatial pattern consistent with a soil problem. Field edges (10 m strip) and thin linear features (roads, machine tracks) are filtered out of the analysis. To be honest: the satellite does NOT diagnose the cause.">🛰️ Recurrent low-vigor zones</span>
       <p class="mt-1" id="spots-headline">—</p>
       <div id="spots-list" class="flex flex-wrap gap-1.5 mt-2"></div>
-      <p class="mt-1.5 text-[10px] text-slate-500 italic">Padrão compatível com nematoide, compactação ou fertilidade. Confirme com amostragem de solo direcionada (zonas tracejadas em vermelho no mapa).</p>
+      <p class="mt-1.5 text-[10px] text-slate-500 italic">Pattern consistent with nematodes, compaction or fertility issues. Confirm with targeted soil sampling (red dashed zones on the map).</p>
     </div>
 
     <div class="grid grid-cols-3 gap-2.5 text-center mt-auto">
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-        <span class="text-[10px] font-semibold text-slate-500 block">Área</span>
+        <span class="text-[10px] font-semibold text-slate-500 block">Area</span>
         <span id="field-area" class="text-sm font-extrabold text-slate-900">—</span>
       </div>
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-        <span class="text-[10px] font-semibold text-slate-500 block">Declividade</span>
+        <span class="text-[10px] font-semibold text-slate-500 block">Slope</span>
         <span id="field-slope" class="text-sm font-extrabold text-slate-900">—</span>
       </div>
       <div class="bg-slate-50 border border-slate-200 rounded-xl p-2.5">
-        <span class="text-[10px] font-semibold text-slate-500 block gloss" title="Dias por ano com o solo descoberto entre a colheita e o próximo plantio (manejo atual)">Solo nu (média/ano)</span>
+        <span class="text-[10px] font-semibold text-slate-500 block gloss" title="Days per year with bare soil between harvest and the next sowing (current management)">Bare soil (avg/year)</span>
         <span id="field-bare" class="text-sm font-extrabold text-slate-900">—</span>
       </div>
     </div>
@@ -178,11 +178,11 @@ tailwind.config = {
     <div class="flex items-center gap-2.5">
       <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="activity" class="w-6 h-6"></i></div>
       <div>
-        <h3 class="text-lg font-extrabold text-slate-900">A vida da lavoura, safra a safra (<span class="gloss" title="Índice de vegetação por satélite (0 a 1): mede o quão verde e vigorosa está a lavoura">NDVI</span>)</h3>
-        <p class="text-xs text-slate-500">A curva sobe quando a soja cresce e cai quando madura. A faixa âmbar é a janela de colheita prevista desta safra.</p>
+        <h3 class="text-lg font-extrabold text-slate-900">The crop's life, season by season (<span class="gloss" title="Satellite vegetation index (0 to 1): measures how green and vigorous the crop is">NDVI</span>)</h3>
+        <p class="text-xs text-slate-500">The curve rises as the soybean grows and falls as it matures. The amber band is this season's predicted harvest window.</p>
       </div>
     </div>
-    <span class="text-[11px] text-slate-400">Sentinel-2 + MODIS, suavizado</span>
+    <span class="text-[11px] text-slate-400">Sentinel-2 + MODIS, smoothed</span>
   </div>
   <div id="ndvi-chart" class="w-full overflow-x-auto"></div>
 </section>
@@ -192,46 +192,46 @@ tailwind.config = {
   <div class="flex items-center gap-2.5 mb-4">
     <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="sliders-horizontal" class="w-6 h-6"></i></div>
     <div>
-      <h3 class="text-lg font-extrabold text-slate-900">Ajuste à sua realidade</h3>
-      <p class="text-xs text-slate-500">O ranking recalcula na hora, tudo roda no seu navegador</p>
+      <h3 class="text-lg font-extrabold text-slate-900">Adjust to your reality</h3>
+      <p class="text-xs text-slate-500">The ranking recalculates instantly, everything runs in your browser</p>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-      <label class="text-xs font-extrabold text-slate-700 block mb-1">E se a colheita atrasar?</label>
+      <label class="text-xs font-extrabold text-slate-700 block mb-1">What if harvest slips?</label>
       <input id="ctl-slip" type="range" min="-10" max="30" value="0" step="1" class="w-full">
-      <div class="text-xs text-slate-600 mt-1">Deslocar <strong id="ctl-slip-val">0 dias</strong> → plantio da sucessão em <strong id="ctl-sowing-date">—</strong></div>
+      <div class="text-xs text-slate-600 mt-1">Shift by <strong id="ctl-slip-val">0 days</strong> → succession sowing on <strong id="ctl-sowing-date">—</strong></div>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-      <label class="text-xs font-extrabold text-slate-700 block mb-2">Cenário climático</label>
+      <label class="text-xs font-extrabold text-slate-700 block mb-2">Climate scenario</label>
       <div id="ctl-scenario" class="flex flex-wrap gap-1.5">
-        <button data-scen="all" class="scen-btn">Todos os anos</button>
+        <button data-scen="all" class="scen-btn">All years</button>
         <button data-scen="nina" class="scen-btn">La Niña</button>
         <button data-scen="nino" class="scen-btn">El Niño</button>
-        <button data-scen="neutral" class="scen-btn">Neutro</button>
+        <button data-scen="neutral" class="scen-btn">Neutral</button>
       </div>
-      <p class="text-[11px] text-slate-500 mt-2">Filtra os 26 anos de histórico (índice ONI/NOAA)</p>
+      <p class="text-[11px] text-slate-500 mt-2">Filters the 26-year history (NOAA ONI index)</p>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
-      <label class="text-xs font-extrabold text-slate-700 block mb-1">Minhas prioridades</label>
+      <label class="text-xs font-extrabold text-slate-700 block mb-1">My priorities</label>
       <div class="space-y-1.5 text-[11px] font-semibold text-slate-600">
-        <div>Renda <input id="w-income" type="range" min="0" max="100" value="50" class="w-full"></div>
-        <div>Proteção do solo <input id="w-soil" type="range" min="0" max="100" value="50" class="w-full"></div>
-        <div>Menos risco <input id="w-risk" type="range" min="0" max="100" value="50" class="w-full"></div>
+        <div>Income <input id="w-income" type="range" min="0" max="100" value="50" class="w-full"></div>
+        <div>Soil protection <input id="w-soil" type="range" min="0" max="100" value="50" class="w-full"></div>
+        <div>Less risk <input id="w-risk" type="range" min="0" max="100" value="50" class="w-full"></div>
       </div>
     </div>
 
     <div class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-700 space-y-1.5">
-      <label class="text-xs font-extrabold text-slate-700 block">Minha fazenda</label>
-      <label class="flex items-center gap-2"><input id="c-cattle" type="checkbox" class="accent-agro-700"> Tenho gado (integração)</label>
-      <label class="flex items-center gap-2"><input id="c-contract" type="checkbox" class="accent-agro-700"> Contrato de milho</label>
-      <label class="text-xs font-extrabold text-slate-700 block pt-1">Pragas conhecidas</label>
-      <label class="flex items-center gap-2"><input id="p-nematode" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Verme microscópico de solo que ataca raízes. Crotalária e braquiária ajudam a suprimir">Nematoide</span></label>
-      <label class="flex items-center gap-2"><input id="p-leafhopper" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Inseto que transmite os enfezamentos do milho. Interromper a 'ponte verde' (milho vivo o ano todo) reduz a praga">Cigarrinha-do-milho</span></label>
-      <label class="flex items-center gap-2"><input id="p-armyworm" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Lagarta que ataca milho e sorgo. Culturas de cobertura quebram o ciclo">Lagarta-do-cartucho</span></label>
+      <label class="text-xs font-extrabold text-slate-700 block">My farm</label>
+      <label class="flex items-center gap-2"><input id="c-cattle" type="checkbox" class="accent-agro-700"> I have cattle (integration)</label>
+      <label class="flex items-center gap-2"><input id="c-contract" type="checkbox" class="accent-agro-700"> Corn contract</label>
+      <label class="text-xs font-extrabold text-slate-700 block pt-1">Known pests</label>
+      <label class="flex items-center gap-2"><input id="p-nematode" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Microscopic soil worm that attacks roots. Crotalaria and brachiaria help suppress it">Nematode</span></label>
+      <label class="flex items-center gap-2"><input id="p-leafhopper" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Insect that transmits corn stunt diseases. Breaking the 'green bridge' (live corn all year round) reduces the pest">Corn leafhopper</span></label>
+      <label class="flex items-center gap-2"><input id="p-armyworm" type="checkbox" class="accent-agro-700"> <span class="gloss" title="Caterpillar that attacks corn and sorghum. Cover crops break its cycle">Fall armyworm</span></label>
     </div>
   </div>
 </section>
@@ -242,11 +242,11 @@ tailwind.config = {
     <div class="flex items-center gap-2.5">
       <div class="p-2 bg-sky-100 text-sky-700 rounded-xl"><i data-lucide="cloud-rain" class="w-6 h-6"></i></div>
       <div>
-        <h3 class="text-lg font-extrabold text-slate-900">Chuva que ainda resta na estação</h3>
-        <p class="text-xs text-slate-500">Em quantos dos últimos 27 anos choveu o suficiente para cada cultura, plantada em cada data? Mova o slider de atraso acima e a linha pontilhada acompanha.</p>
+        <h3 class="text-lg font-extrabold text-slate-900">Rain still left in the season</h3>
+        <p class="text-xs text-slate-500">In how many of the last 27 years did it rain enough for each crop, sown on each date? Move the delay slider above and the dotted line follows.</p>
       </div>
     </div>
-    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Odds históricas (2000–2026, NASA POWER), não é previsão</span>
+    <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full">Historical odds (2000–2026, NASA POWER), not a forecast</span>
   </div>
   <div id="rain-gauge-chart" class="w-full overflow-x-auto"></div>
   <div id="rain-gauge-readout" class="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-3"></div>
@@ -259,12 +259,12 @@ tailwind.config = {
     <div class="flex items-center gap-2.5">
       <div class="p-2 bg-agro-100 text-agro-800 rounded-xl"><i data-lucide="tractor" class="w-6 h-6"></i></div>
       <div>
-        <h3 class="text-lg font-extrabold text-slate-900">Se for plantar UMA cultura na fazenda toda, qual?</h3>
-        <p class="text-xs text-slate-500">Na prática o produtor costuma escolher uma única sucessão para a fazenda inteira. Este é o ranking agregado dos 11 talhões, ponderado pela área de cada um.</p>
+        <h3 class="text-lg font-extrabold text-slate-900">If you plant ONE crop across the whole farm, which one?</h3>
+        <p class="text-xs text-slate-500">In practice farmers usually pick a single succession crop for the entire farm. This is the aggregated ranking across the 11 fields, weighted by each field's area.</p>
       </div>
     </div>
     <span class="text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-full gloss"
-      title="Não é um cálculo novo: é a média, ponderada por hectares, dos mesmos scores por talhão mostrados abaixo, cada talhão com sua própria data de colheita, declividade e solo nu.">mesmos scores por talhão, agregados por área</span>
+      title="Not a new calculation: it is the hectare-weighted average of the same per-field scores shown below, each field with its own harvest date, slope and bare-soil days.">same per-field scores, aggregated by area</span>
   </div>
   <div id="farm-view" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
   <p id="farm-view-note" class="text-[11px] text-slate-500 mt-3 leading-relaxed"></p>
@@ -273,16 +273,16 @@ tailwind.config = {
 <!-- 4. CARDS DE ESTRATÉGIA -->
 <section>
   <div class="mb-4">
-    <span class="text-xs font-bold uppercase tracking-wider text-agro-700">O produto</span>
-    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">O que plantar depois da soja, ranqueado para este talhão</h3>
-    <p class="text-sm text-slate-600 mt-1">Cada card mostra por quê, com que evidência, benefícios, o que não sabemos e riscos.</p>
+    <span class="text-xs font-bold uppercase tracking-wider text-agro-700">The product</span>
+    <h3 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-0.5">What to plant after soybean, ranked for this field</h3>
+    <p class="text-sm text-slate-600 mt-1">Each card shows why, with what evidence, benefits, what we don't know, and risks.</p>
   </div>
   <div id="strategy-cards" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
   <div class="mt-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
     <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
-    <p class="text-xs text-amber-900 leading-relaxed"><strong>Ferramenta de apoio, não de decisão.</strong>
-      Estes números vêm de satélite e histórico climático regional. Eles não substituem a avaliação do seu agrônomo,
-      que conhece o solo, o histórico de manejo e os preços locais. Converse com ele antes de decidir.</p>
+    <p class="text-xs text-amber-900 leading-relaxed"><strong>A support tool, not a decision maker.</strong>
+      These numbers come from satellites and regional climate history. They do not replace the judgment of your agronomist,
+      who knows the soil, the management history and local prices. Talk to them before deciding.</p>
   </div>
 </section>
 
@@ -294,7 +294,7 @@ tailwind.config = {
       <i data-lucide="sprout" class="w-4 h-4 text-agro-700"></i>
       <span><strong class="text-slate-700">Field Shift</strong> · NASA Space Apps Challenge 2026 · "Field Shift: Adapting Farms with NASA Data"</span>
     </div>
-    <span>Dados: NASA MODIS · NASA POWER · GPM/IMERG · SRTM · ESA Sentinel-2 · Satélite: Esri World Imagery</span>
+    <span>Data: NASA MODIS · NASA POWER · GPM/IMERG · SRTM · ESA Sentinel-2 · Satellite imagery: Esri World Imagery</span>
   </div>
 </footer>
 
@@ -312,7 +312,7 @@ const S = {
 };
 
 const fmtDay = iso => new Date(iso + "T12:00:00")
-  .toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+  .toLocaleDateString("en-US", { month: "short", day: "2-digit" });
 const addDays = (iso, n) => {
   const d = new Date(iso + "T12:00:00");
   d.setDate(d.getDate() + n);
@@ -356,7 +356,7 @@ let map, fieldLayers = {};
 function initMap() {
   map = L.map("agro-map", { zoomControl: true });
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-    { attribution: "Satélite &copy; Esri, Maxar", maxZoom: 19 }).addTo(map);
+    { attribution: "Satellite &copy; Esri, Maxar", maxZoom: 19 }).addTo(map);
   const layer = L.geoJSON(S.data.fields, {
     style: f => styleFor(f.properties.id),
     onEachFeature: (f, lyr) => {
@@ -372,10 +372,10 @@ function initMap() {
       onEachFeature: (f, lyr) => {
         const p = f.properties;
         lyr.bindTooltip(
-          `<strong>Zona de baixo vigor recorrente</strong> · ${p.field_id}<br>` +
-          `NDVI anômalo em ${p.seasons_low} de ${p.n_seasons} safras (${p.area_ha} ha).<br>` +
-          `Padrão compatível com problema de solo (nematoide, compactação ou fertilidade).<br>` +
-          `<em>Recomendação: amostragem de solo direcionada aqui.</em>`,
+          `<strong>Recurrent low-vigor zone</strong> · ${p.field_id}<br>` +
+          `Anomalous NDVI in ${p.seasons_low} of ${p.n_seasons} seasons (${p.area_ha} ha).<br>` +
+          `Pattern consistent with a soil problem (nematodes, compaction or fertility).<br>` +
+          `<em>Recommendation: targeted soil sampling here.</em>`,
           { sticky: true });
       },
     }).addTo(map);
@@ -395,7 +395,7 @@ function renderNdviChart() {
   const series = S.data.ndvi[S.fieldId] || [];
   const el = document.getElementById("ndvi-chart");
   if (!series.length) {
-    el.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">Sem série NDVI para este talhão.</p>';
+    el.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No NDVI series for this field.</p>';
     return;
   }
   const W = 1100, H = 240, M = { t: 16, r: 16, b: 28, l: 36 };
@@ -413,14 +413,14 @@ function renderNdviChart() {
     if (xb > M.l && xa < W - M.r) {
       band = `<rect x="${xa.toFixed(1)}" y="${M.t}" width="${Math.max(2, xb - xa).toFixed(1)}" height="${H - M.t - M.b}" fill="#f59e0b" opacity="0.15"/>
         <line x1="${xm.toFixed(1)}" y1="${M.t}" x2="${xm.toFixed(1)}" y2="${H - M.b}" stroke="#d97706" stroke-width="2" stroke-dasharray="5 4"/>
-        <text x="${Math.min(xm + 5, W - 110).toFixed(1)}" y="${M.t + 14}" font-size="11" font-weight="700" fill="#92400e">colheita P50</text>`;
+        <text x="${Math.min(xm + 5, W - 110).toFixed(1)}" y="${M.t + 14}" font-size="11" font-weight="700" fill="#92400e">P50 harvest</text>`;
     }
     const act = actualHarvest(S.fieldId);
     if (act) {
       const xr = x(Date.parse(act));
       if (xr > M.l && xr < W - M.r) {
         band += `<line x1="${xr.toFixed(1)}" y1="${M.t}" x2="${xr.toFixed(1)}" y2="${H - M.b}" stroke="#15803d" stroke-width="2"/>
-          <text x="${Math.min(xr + 5, W - 110).toFixed(1)}" y="${M.t + 30}" font-size="11" font-weight="700" fill="#15803d">colheita real</text>`;
+          <text x="${Math.min(xr + 5, W - 110).toFixed(1)}" y="${M.t + 30}" font-size="11" font-weight="700" fill="#15803d">actual harvest</text>`;
       }
     }
   }
@@ -434,7 +434,7 @@ function renderNdviChart() {
     grid += `<line x1="${xt}" y1="${M.t}" x2="${xt}" y2="${H - M.b}" stroke="#f1f5f9" stroke-width="1"/>
       <text x="${xt}" y="${H - 8}" font-size="10" fill="#94a3b8" text-anchor="middle">${yr}</text>`;
   }
-  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img" aria-label="Série NDVI do talhão ${S.fieldId}">
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img" aria-label="NDVI series for field ${S.fieldId}">
     ${grid}${band}
     <polyline points="${pts}" fill="none" stroke="#236e49" stroke-width="2" stroke-linejoin="round"/>
   </svg>`;
@@ -443,11 +443,11 @@ function renderNdviChart() {
 /* ------------------------------------------------ TG.2 — gauge "chuva que resta" */
 // Categorical palette (colorblind-validated order, slots 1-5)
 const RAIN_CROPS = [
-  ["corn", "Milho", "#2a78d6"],
-  ["sorghum", "Sorgo", "#eb6834"],
-  ["millet", "Milheto", "#1baf7a"],
-  ["brachiaria", "Braquiária", "#eda100"],
-  ["crotalaria", "Crotalária", "#e87ba4"],
+  ["corn", "Corn", "#2a78d6"],
+  ["sorghum", "Sorghum", "#eb6834"],
+  ["millet", "Millet", "#1baf7a"],
+  ["brachiaria", "Brachiaria", "#eda100"],
+  ["crotalaria", "Crotalaria", "#e87ba4"],
 ];
 
 function rainIndexFor(iso) { // nearest index on the 2026 Jan-Apr axis
@@ -461,7 +461,7 @@ function rainIndexFor(iso) { // nearest index on the 2026 Jan-Apr axis
 function renderRainGauge(sowingISO) {
   const ro = S.data.rainOdds;
   const chartEl = document.getElementById("rain-gauge-chart");
-  if (!ro) { chartEl.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">Sem dados de climatologia (rain_odds.json).</p>'; return; }
+  if (!ro) { chartEl.innerHTML = '<p class="text-xs text-slate-400 py-6 text-center">No climatology data (rain_odds.json).</p>'; return; }
 
   const W = 1100, H = 260, M = { t: 18, r: 20, b: 30, l: 42 };
   const t0 = Date.parse(ro.dates[0]), t1 = Date.parse(ro.dates[ro.dates.length - 1]);
@@ -474,7 +474,7 @@ function renderRainGauge(sowingISO) {
     grid += `<line x1="${M.l}" y1="${y(p)}" x2="${W - M.r}" y2="${y(p)}" stroke="#e2e8f0" stroke-width="1"/>
       <text x="${M.l - 6}" y="${y(p) + 4}" font-size="10" fill="#94a3b8" text-anchor="end">${Math.round(p * 100)}%</text>`;
   }
-  for (const [md, lbl] of [["01-01", "jan"], ["02-01", "fev"], ["03-01", "mar"], ["04-01", "abr"]]) {
+  for (const [md, lbl] of [["01-01", "Jan"], ["02-01", "Feb"], ["03-01", "Mar"], ["04-01", "Apr"]]) {
     const xt = x(Date.parse("2026-" + md));
     grid += `<line x1="${xt}" y1="${M.t}" x2="${xt}" y2="${H - M.b}" stroke="#f1f5f9" stroke-width="1"/>
       <text x="${xt}" y="${H - 8}" font-size="10" fill="#94a3b8" text-anchor="middle">${lbl}</text>`;
@@ -485,7 +485,7 @@ function renderRainGauge(sowingISO) {
   let cess = "";
   if (c10 < W - M.r) {
     cess = `<rect x="${c10.toFixed(1)}" y="${M.t}" width="${Math.max(2, c90 - c10).toFixed(1)}" height="${H - M.t - M.b}" fill="#94a3b8" opacity="0.14"/>
-      <text x="${(c10 + 4).toFixed(1)}" y="${M.t + 12}" font-size="10" font-weight="700" fill="#64748b">fim histórico das chuvas</text>`;
+      <text x="${(c10 + 4).toFixed(1)}" y="${M.t + 12}" font-size="10" font-weight="700" fill="#64748b">historical end of the rains</text>`;
   }
 
   let lines = "";
@@ -497,7 +497,7 @@ function renderRainGauge(sowingISO) {
 
   const xm = x(Date.parse(ro.dates[idx]));
   const marker = `<line x1="${xm.toFixed(1)}" y1="${M.t}" x2="${xm.toFixed(1)}" y2="${H - M.b}" stroke="#d97706" stroke-width="2" stroke-dasharray="5 4"/>
-    <text x="${(xm > W - 160 ? xm - 5 : xm + 5).toFixed(1)}" y="${M.t + 12}" font-size="11" font-weight="700" fill="#92400e" text-anchor="${xm > W - 160 ? "end" : "start"}">plantio ${fmtDay(ro.dates[idx])}</text>`;
+    <text x="${(xm > W - 160 ? xm - 5 : xm + 5).toFixed(1)}" y="${M.t + 12}" font-size="11" font-weight="700" fill="#92400e" text-anchor="${xm > W - 160 ? "end" : "start"}">sowing ${fmtDay(ro.dates[idx])}</text>`;
 
   const legend = RAIN_CROPS.map(([, lbl, color]) =>
     `<span class="inline-flex items-center gap-1.5 mr-3"><span style="background:${color}" class="inline-block w-3 h-[3px] rounded-full"></span>${lbl}</span>`).join("");
@@ -505,7 +505,7 @@ function renderRainGauge(sowingISO) {
   chartEl.innerHTML = `
     <div class="text-[11px] font-semibold text-slate-600 mt-2 mb-1">${legend}</div>
     <svg viewBox="0 0 ${W} ${H}" class="w-full min-w-[640px]" role="img"
-      aria-label="Odds históricas de chuva suficiente por cultura e data de plantio">
+      aria-label="Historical odds of sufficient rain by crop and sowing date">
       ${grid}${cess}${marker}${lines}
     </svg>`;
 
@@ -516,16 +516,16 @@ function renderRainGauge(sowingISO) {
       <span class="text-[11px] font-bold text-slate-600 flex items-center justify-center gap-1.5">
         <span style="background:${color}" class="inline-block w-2.5 h-2.5 rounded-full"></span>${lbl}</span>
       <span class="text-lg font-extrabold text-slate-900">${Math.round(p * 100)}%</span>
-      <span class="text-[10px] text-slate-500 block">dos anos choveu ≥ ${ro.needs_mm[key]} mm no ciclo</span>
+      <span class="text-[10px] text-slate-500 block">of years had ≥ ${ro.needs_mm[key]} mm over the cycle</span>
     </div>`;
   }).join("");
 
   document.getElementById("rain-cessation-note").innerHTML =
-    `<strong>Quando as chuvas costumam acabar:</strong> em metade dos últimos ${ro.n_years} anos, as chuvas
-    cessaram por volta de <strong>${fmtDay(ro.cessation.p50)}</strong>
-    (entre ${fmtDay(ro.cessation.p10)} e ${fmtDay(ro.cessation.p90)} em 80% dos anos).
-    Plantar perto desse limite significa terminar o ciclo no seco. Por isso as curvas desabam ao longo de março.
-    <em>Estas são frequências históricas (NASA POWER, 2000–2026), não uma previsão do tempo.</em>`;
+    `<strong>When the rains usually end:</strong> in half of the last ${ro.n_years} years, the rains
+    stopped around <strong>${fmtDay(ro.cessation.p50)}</strong>
+    (between ${fmtDay(ro.cessation.p10)} and ${fmtDay(ro.cessation.p90)} in 80% of years).
+    Sowing near that limit means finishing the cycle in the dry season. That is why the curves collapse through March.
+    <em>These are historical frequencies (NASA POWER, 2000–2026), not a weather forecast.</em>`;
 }
 
 /* ------------------------------------------------ cards */
@@ -611,28 +611,28 @@ function renderCards() {
       </div>
       <div class="grid grid-cols-3 gap-2 text-center text-[11px]">
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
-          <span class="font-semibold text-slate-500 block gloss" title="Fração dos anos históricos em que choveu o suficiente para esta cultura plantada nesta data">Sucesso hídrico</span>
+          <span class="font-semibold text-slate-500 block gloss" title="Fraction of historical years with enough rain for this crop sown on this date">Water success</span>
           <span class="font-extrabold text-slate-900">${prob}</span>
         </div>
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
-          <span class="font-semibold text-slate-500 block gloss" title="Dias por ano com o solo descoberto, exposto a erosão e perda de água">Solo nu/ano</span>
-          <span class="font-extrabold text-slate-900">${bare != null ? bare + " dias" : "—"}</span>
+          <span class="font-semibold text-slate-500 block gloss" title="Days per year with bare soil, exposed to erosion and water loss">Bare soil/year</span>
+          <span class="font-extrabold text-slate-900">${bare != null ? bare + " days" : "—"}</span>
         </div>
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
-          <span class="font-semibold text-slate-500 block">Efeito em pragas</span>
+          <span class="font-semibold text-slate-500 block">Effect on pests</span>
           <span class="font-extrabold ${r.pestSum > 0 ? "text-agro-700" : r.pestSum < 0 ? "text-rose-600" : "text-slate-900"}">${r.pestSum > 0 ? "+" : ""}${r.pestSum || "0"}</span>
         </div>
       </div>
       ${txt ? `
       <div class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
-        <p><strong class="text-slate-800">Por quê:</strong> ${txt.why}</p>
-        <p><strong class="text-slate-800">Evidência:</strong> ${txt.evidence}</p>
+        <p><strong class="text-slate-800">Why:</strong> ${txt.why}</p>
+        <p><strong class="text-slate-800">Evidence:</strong> ${txt.evidence}</p>
         ${r.id === "cover_crotalaria" && fieldSpots.length ? `
-        <p class="text-rose-700"><strong>🛰️ Evidência deste talhão:</strong> ${fieldSpots.length === 1 ? "1 zona" : fieldSpots.length + " zonas"} de baixo vigor recorrente detectada${fieldSpots.length === 1 ? "" : "s"} por satélite (NDVI anômalo no mesmo lugar em 3 ou mais safras), padrão compatível com problema de solo (nematoide, compactação ou fertilidade). A crotalária é supressora de nematoides. Recomendamos também amostragem de solo direcionada nas zonas marcadas no mapa.</p>` : ""}
-        <p><strong class="text-slate-800">Benefícios:</strong> ${(txt.benefits || []).join("; ")}</p>
-        <p><strong class="text-slate-800">O que não sabemos:</strong> ${(txt.gaps || []).join("; ")}</p>
-        <p><strong class="text-slate-800">Riscos:</strong> ${(txt.risks || []).join("; ")}</p>
-      </div>` : `<p class="text-[11px] text-slate-400 italic">Card completo (por quê / evidência / riscos) em preparação.</p>`}
+        <p class="text-rose-700"><strong>🛰️ Evidence from this field:</strong> ${fieldSpots.length === 1 ? "1 recurrent low-vigor zone" : fieldSpots.length + " recurrent low-vigor zones"} detected by satellite (anomalous NDVI in the same place across 3 or more seasons), a pattern consistent with a soil problem (nematodes, compaction or fertility). Crotalaria is a nematode suppressor. We also recommend targeted soil sampling in the zones marked on the map.</p>` : ""}
+        <p><strong class="text-slate-800">Benefits:</strong> ${(txt.benefits || []).join("; ")}</p>
+        <p><strong class="text-slate-800">What we don't know:</strong> ${(txt.gaps || []).join("; ")}</p>
+        <p><strong class="text-slate-800">Risks:</strong> ${(txt.risks || []).join("; ")}</p>
+      </div>` : `<p class="text-[11px] text-slate-400 italic">Full card (why / evidence / risks) in preparation.</p>`}
     </article>`;
   }).join("");
 }
@@ -692,20 +692,20 @@ function renderFarmView(ctl) {
         <span class="text-xl font-extrabold ${r.fullyBlocked ? "text-slate-400" : "text-agro-800"} shrink-0">${r.fullyBlocked ? "—" : Math.round(r.score)}</span>
       </div>
       ${r.fullyBlocked
-        ? `<p class="text-[11px] font-bold text-rose-600">${r.blocked[0] ? r.blocked[0].reason : "Bloqueada em todos os talhões"}</p>`
+        ? `<p class="text-[11px] font-bold text-rose-600">${r.blocked[0] ? r.blocked[0].reason : "Blocked on every field"}</p>`
         : `<div class="w-full bg-slate-200 rounded-full h-1.5 overflow-hidden"><div class="bg-agro-600 h-1.5 rounded-full" style="width:${Math.round(r.score)}%"></div></div>
           <p class="text-[11px] text-slate-600">${r.best && r.worst && r.best.fid !== r.worst.fid
-            ? `Melhor talhão: <strong>${r.best.fid}</strong> (${r.best.score}) · Pior: <strong>${r.worst.fid}</strong> (${r.worst.score})`
-            : `Score igual em todos os talhões`}</p>`}
+            ? `Best field: <strong>${r.best.fid}</strong> (${r.best.score}) · Worst: <strong>${r.worst.fid}</strong> (${r.worst.score})`
+            : `Same score on every field`}</p>`}
       ${!r.fullyBlocked && blockedHa
-        ? `<p class="text-[11px] font-bold text-rose-600">⚠ Bloqueada em ${blockedHa}: ${r.blocked[0].reason} (média calculada só nos talhões restantes)</p>` : ""}
+        ? `<p class="text-[11px] font-bold text-rose-600">⚠ Blocked on ${blockedHa}: ${r.blocked[0].reason} (average computed on the remaining fields only)</p>` : ""}
     </div>`;
   }).join("");
 
-  note.innerHTML = `<strong>Como ler:</strong> cada número é a média dos scores por talhão
-    (os mesmos dos cards abaixo), ponderada pelos <strong>${Math.round(totalArea)} ha</strong> da fazenda —
-    cada talhão entra com sua própria data de colheita, declividade e solo nu. O melhor/pior talhão mostra a dispersão:
-    um score alto na média ainda pode esconder um talhão onde a escolha é ruim. Reage aos mesmos controles acima.`;
+  note.innerHTML = `<strong>How to read this:</strong> each number is the average of the per-field scores
+    (the same ones in the cards below), weighted over the farm's <strong>${Math.round(totalArea)} ha</strong>.
+    Each field enters with its own harvest date, slope and bare-soil days. The best/worst field shows the spread:
+    a high average score can still hide a field where the choice is poor. It reacts to the same controls above.`;
 }
 
 /* ------------------------------------------------ seleção e controles */
@@ -737,13 +737,13 @@ function selectField(id) {
     set("replay-pred", fmtDay(h.p50));
     set("replay-actual", fmtDay(act));
     const d = Math.abs(diffDays(h.p50, act));
-    set("replay-err", d + (d === 1 ? " dia" : " dias"));
+    set("replay-err", d + (d === 1 ? " day" : " days"));
     let tot = 0, n = 0;
     for (const [fid, hh] of Object.entries(S.data.harvest)) {
       const a = actualHarvest(fid);
       if (a && hh.p50) { tot += Math.abs(diffDays(hh.p50, a)); n++; }
     }
-    set("replay-mean", n ? (tot / n).toFixed(1) + " dias" : "—");
+    set("replay-mean", n ? (tot / n).toFixed(1) + " days" : "—");
   } else {
     box.classList.add("hidden");
   }
@@ -755,7 +755,7 @@ function selectField(id) {
   set("field-area", feat && feat.properties.area_ha ? Math.round(feat.properties.area_ha) + " ha" : "—");
   set("field-slope", feat && feat.properties.slope_deg != null ? feat.properties.slope_deg.toFixed(1) + "°" : "—");
   const bs = S.data.bareSoil[id];
-  set("field-bare", bs && bs.current_corn != null ? bs.current_corn + " dias" : "—");
+  set("field-bare", bs && bs.current_corn != null ? bs.current_corn + " days" : "—");
 
   renderNdviChart();
   renderCards();
@@ -773,25 +773,25 @@ function renderProductivity(id) {
   const head = document.getElementById("prod-headline");
   if (cur) {
     const d = cur.deviation_pct;
-    const word = d < 0 ? "menos" : "mais";
+    const word = d < 0 ? "less" : "more";
     const cls = d < -5 ? "text-rose-700" : d > 5 ? "text-agro-700" : "text-slate-800";
-    head.innerHTML = `Na safra <strong>${HIGHLIGHT}</strong>, ${id} acumulou
-      <strong class="${cls}">${Math.abs(d).toFixed(1)}% ${word}</strong> biomassa (NDVI) que
-      sua média de <strong>${p.n_seasons} safras</strong>${Math.abs(d) <= 5 ? ", dentro do normal" : ""}.`;
+    head.innerHTML = `In the <strong>${HIGHLIGHT}</strong> season, ${id} accumulated
+      <strong class="${cls}">${Math.abs(d).toFixed(1)}% ${word}</strong> biomass (NDVI) than
+      its <strong>${p.n_seasons}-season</strong> average${Math.abs(d) <= 5 ? ", within the normal range" : ""}.`;
   } else {
-    head.textContent = "Safra em andamento, integral ainda incompleta.";
+    head.textContent = "Season in progress, the integral is still incomplete.";
   }
 
   document.getElementById("prod-history").innerHTML = p.seasons.map(s => {
     if (!s.complete)
-      return `<span class="px-2 py-1 rounded-lg border border-dashed border-slate-300 text-slate-400 text-[10px] font-bold">${s.season} em campo</span>`;
+      return `<span class="px-2 py-1 rounded-lg border border-dashed border-slate-300 text-slate-400 text-[10px] font-bold">${s.season} in the field</span>`;
     const d = s.deviation_pct;
     const hl = s.season === HIGHLIGHT;
     const tone = d < -5 ? "bg-rose-100 text-rose-800 border-rose-200"
                : d > 5 ? "bg-emerald-100 text-emerald-800 border-emerald-200"
                : "bg-slate-100 text-slate-600 border-slate-200";
     return `<span class="px-2 py-1 rounded-lg border text-[10px] font-bold ${tone} ${hl ? "ring-2 ring-amber-400" : ""}"
-      title="Integral NDVI ${s.ndvi_integral} em ${s.n_days} dias">${s.season}: ${d > 0 ? "+" : ""}${d.toFixed(0)}%</span>`;
+      title="NDVI integral ${s.ndvi_integral} over ${s.n_days} days">${s.season}: ${d > 0 ? "+" : ""}${d.toFixed(0)}%</span>`;
   }).join("");
 
   renderCalibration(id, p);
@@ -805,13 +805,13 @@ function renderSpots(id) {
   box.classList.remove("hidden");
   const totalHa = sp.reduce((a, f) => a + (f.properties.area_ha || 0), 0);
   document.getElementById("spots-headline").innerHTML =
-    `O satélite encontrou <strong>${sp.length === 1 ? "1 zona" : sp.length + " zonas"}</strong> deste talhão com
-     NDVI anômalo <strong>no mesmo lugar em 3 ou mais safras</strong> (${totalHa.toFixed(1)} ha no total).
-     Não é azar de uma safra, é um padrão que se repete.`;
+    `The satellite found <strong>${sp.length === 1 ? "1 zone" : sp.length + " zones"}</strong> in this field with
+     anomalous NDVI <strong>in the same place across 3 or more seasons</strong> (${totalHa.toFixed(1)} ha in total).
+     This is not one season's bad luck, it is a repeating pattern.`;
   document.getElementById("spots-list").innerHTML = sp.map((f, i) => {
     const p = f.properties;
     return `<span class="px-2 py-1 rounded-lg border bg-rose-100 text-rose-800 border-rose-200 text-[10px] font-bold"
-      title="NDVI anômalo em ${p.seasons_low} de ${p.n_seasons} safras">Zona ${i + 1}: ${p.area_ha} ha · ${p.seasons_low}/${p.n_seasons} safras</span>`;
+      title="Anomalous NDVI in ${p.seasons_low} of ${p.n_seasons} seasons">Zone ${i + 1}: ${p.area_ha} ha · ${p.seasons_low}/${p.n_seasons} seasons</span>`;
   }).join("");
 }
 
@@ -842,7 +842,7 @@ function renderCalibration(id, p) {
       <span class="w-14 font-bold">${s.season}</span>
       <input type="number" min="0" max="150" step="0.1" data-season="${s.season}"
         value="${yields[s.season] != null ? yields[s.season] : ""}"
-        placeholder="sc/ha"
+        placeholder="bags/ha"
         class="calib-in w-full border border-slate-300 rounded-md px-1.5 py-1 text-[11px]">
     </label>`).join("");
 
@@ -888,9 +888,9 @@ function renderCalibResult(id, p) {
 
   if (n < 3) {
     box.innerHTML = `<p class="text-[11px] text-slate-700">
-      <strong>${n} safra${n > 1 ? "s" : ""} informada${n > 1 ? "s" : ""}</strong> —
-      ${rows.map(r => `${r.season}: ${r.y} sc/ha (satélite: ${fmtPct(devOf(p, r.x))})`).join(" · ")}.
-      Informe <strong>pelo menos 3 safras</strong> para calibrarmos uma estimativa em sacas/ha.</p>`;
+      <strong>${n} season${n > 1 ? "s" : ""} entered</strong> —
+      ${rows.map(r => `${r.season}: ${r.y} bags/ha (satellite: ${fmtPct(devOf(p, r.x))})`).join(" · ")}.
+      Enter <strong>at least 3 seasons</strong> so we can calibrate a bags/ha estimate.</p>`;
     return;
   }
 
@@ -907,35 +907,35 @@ function renderCalibResult(id, p) {
   for (const [x, y] of pairs) sse += (y - (a + b * x)) ** 2;
   const se = n > 2 ? Math.sqrt(sse / (n - 2)) : Infinity;
 
-  const quality = `com base em <strong>${n} safras que você informou</strong> (R² = ${r2.toFixed(2)})`;
+  const quality = `based on <strong>${n} seasons you entered</strong> (R² = ${r2.toFixed(2)})`;
 
   if (b <= 0 || r2 < 0.4) {
     box.innerHTML = `<p class="text-[11px] text-slate-700">
-      ⚠ <strong>A calibração não ficou boa o suficiente</strong> ${quality}:
-      suas produtividades não acompanham a curva do satélite neste talhão
-      (ex.: perdas por chuva na colheita ou pragas que o NDVI não enxerga).
-      Preferimos <strong>não exibir uma estimativa em sacas/ha</strong> a inventar um número —
-      use o índice relativo acima. Confira os valores ou adicione mais safras.</p>`;
+      ⚠ <strong>The calibration was not good enough</strong> ${quality}:
+      your yields don't track the satellite curve in this field
+      (for example, rain losses at harvest or pests that NDVI can't see).
+      We would rather <strong>not show a bags/ha estimate</strong> than invent a number.
+      Use the relative index above, double-check the values or add more seasons.</p>`;
     return;
   }
 
   if (!target) {
-    box.innerHTML = `<p class="text-[11px] text-slate-700">Calibração ajustada ${quality},
-      mas a integral NDVI de ${CALIB_TARGET} ainda não está completa para este talhão.</p>`;
+    box.innerHTML = `<p class="text-[11px] text-slate-700">Calibration fitted ${quality},
+      but the ${CALIB_TARGET} NDVI integral is not yet complete for this field.</p>`;
     return;
   }
 
   const est = a + b * target.ndvi_integral;
   const unc = isFinite(se) ? se * 1.5 : null; // ~ wide band; honest about few points
   box.innerHTML = `<p class="text-[11px] text-slate-800 leading-relaxed">
-    📏 <strong>Estimativa calibrada ${CALIB_TARGET}:</strong>
-    <span class="text-base font-extrabold text-agro-800">${est.toFixed(1)} sc/ha</span>
-    ${unc != null ? `<span class="text-slate-500">(± ${unc.toFixed(1)} sc/ha)</span>` : ""}
+    📏 <strong>Calibrated estimate for ${CALIB_TARGET}:</strong>
+    <span class="text-base font-extrabold text-agro-800">${est.toFixed(1)} bags/ha</span>
+    ${unc != null ? `<span class="text-slate-500">(± ${unc.toFixed(1)} bags/ha)</span>` : ""}
     (${quality}).
-    ${yields[CALIB_TARGET] != null ? `Você registrou <strong>${yields[CALIB_TARGET]} sc/ha</strong> nessa safra
-      (diferença de ${Math.abs(est - yields[CALIB_TARGET]).toFixed(1)} sc/ha).` : ""}</p>
-    <p class="text-[10px] text-slate-500 italic mt-1">Regressão linear simples (produtividade ~ integral de NDVI) feita no seu navegador.
-    Seus dados nunca saem deste dispositivo.</p>`;
+    ${yields[CALIB_TARGET] != null ? `You recorded <strong>${yields[CALIB_TARGET]} bags/ha</strong> for that season
+      (a difference of ${Math.abs(est - yields[CALIB_TARGET]).toFixed(1)} bags/ha).` : ""}</p>
+    <p class="text-[10px] text-slate-500 italic mt-1">Simple linear regression (yield ~ NDVI integral) run in your browser.
+    Your data never leaves this device.</p>`;
 }
 
 const devOf = (p, integral) => p.mean_integral ? (integral / p.mean_integral - 1) * 100 : null;
@@ -959,7 +959,7 @@ function initControls() {
   document.getElementById("ctl-slip").oninput = e => {
     S.slip = +e.target.value;
     document.getElementById("ctl-slip-val").textContent =
-      (S.slip > 0 ? "+" : "") + S.slip + " dias";
+      (S.slip > 0 ? "+" : "") + S.slip + " days";
     selectField(S.fieldId);
   };
   document.querySelectorAll("#ctl-scenario .scen-btn").forEach(b => {
