@@ -66,6 +66,7 @@ Owners for later phases are intentionally left as **TBD** — assign when that p
 - [x] TG.2 — "Rain left in the season" gauge (POWER climatology) — done (Vinicius; `engine/rain_odds.py` → `data/rain_odds.csv` + `web/data/rain_odds.json`, gauge follows the slip slider; odds collapse through March as expected, median rain cessation Apr 22)
 - [ ] TG.3 — Relative productivity per field (NDVI integral vs own history) — **Vinicius**
 - [ ] TG.4 — Farmer's own yield input → per-field calibration — **Vinicius**
+- [ ] TG.x — **Pending HTML update pass** (`web/index.html`) — manual browser review still owed: TE.4 polish check, surface TG.1 low-vigor spots more prominently in the page (not just map tooltip), and verify the TG.2 rain gauge renders/reacts correctly — **Vinicius**
 - [ ] TF.3 — Submission — *everyone*
 
 ---
