@@ -92,13 +92,41 @@ The pipeline has four stages. All code is open source in the repository.
    by the farmer's slider settings. The computation runs client-side in plain
    JavaScript.
 
-Python scripts produce small CSV and JSON tables committed to the repository.
-The site is static HTML, CSS and JavaScript hosted on GitHub Pages and fetches
-those tables directly. There is no server.
+**Benefits and intended impact.** The immediate benefit is a better-timed
+succession decision: the tool shows each field's real planting window and the
+historical odds of each option, so the farmer can avoid sowing corn into a window
+where it fails in most years, or discover that a cover crop fits where a cash
+crop does not. The longer-term impact is on soil. The demonstration fields sit
+bare for 100 to 110 days of each dry season under the current rotation, and the
+tool puts that number in front of the farmer next to alternatives that reduce it,
+together with their effect on nematodes and corn leafhopper, two of the most
+costly pest problems in the region. The method generalizes: every input is a
+public satellite or climate product, so the same pipeline can be run for any
+rainfed grain region in the world.
 
-Predictions are presented as ranges, each card lists its information gaps, and a
-fixed notice states that the tool supports the farmer's agronomist and does not
-replace them.
+**Tools and technologies.** Google Earth Engine (JavaScript and Python) for
+satellite exports; Python with pandas and SciPy for NDVI smoothing, phenology
+detection, the water balance and the scoring tables; plain HTML, CSS and
+JavaScript with Leaflet and Tailwind for the site. The site is static, hosted on
+GitHub Pages, and reads pre-computed JSON tables. There is no server and no
+build step, so the demo cannot fail from infrastructure.
+
+**What makes it creative.** The harvest prediction is not the product; it is the
+measuring instrument. Most crop tools predict yield. Field Shift predicts a date,
+because the date is what converts satellite data into an agronomic decision: how
+many days of rain remain. A second choice we consider creative is honesty as a
+design feature: predictions appear as P10, P50 and P90 ranges rather than single
+dates, every strategy card lists what the data does not cover, and a fixed notice
+states that the tool supports the farmer's agronomist and does not replace them.
+
+**Factors the team considered.** Scope was cut deliberately: one crop system,
+one region, seven real fields, so that every number shown could be computed and
+verified within the event. We validated instead of assumed: the harvest model
+was tested by replaying the 2025/26 season with data frozen in December, and the
+water balance was accepted only after it reproduced known agronomic behavior.
+We also considered the user: the interface is in Portuguese, built for a farmer
+on a phone, and avoids technical vocabulary except where a tooltip can explain
+it.
 
 ## NASA Data
 
