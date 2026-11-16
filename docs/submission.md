@@ -80,33 +80,35 @@ weights for income, soil protection and risk, and checkboxes for constraints
 such as owning cattle, holding a corn contract, or known pest presence.
 
 The pipeline has four stages, each grounded in published literature, and all
-code is open source in the repository. The first stage predicts the harvest.
-Detecting crop stages from smoothed vegetation-index time series is an
-established method, with reported errors of 3 to 12 days for rice, maize and
-soybean (Sakamoto et al., 2005, Remote Sensing of Environment 96:366-374;
-Sakamoto et al., 2010, RSE 114:2146-2159). For each field, Sentinel-2 (10 m)
-and MODIS (daily) NDVI from 2019 onward are merged and smoothed with a
-Savitzky-Golay filter, the standard method for reconstructing NDVI series under
-cloud contamination (Chen et al., 2004, RSE 91:332-344), and used to detect
-emergence, peak and harvest dates for every past season. The distribution of
-the field's own emergence-to-harvest durations drives the prediction. A
-growing-degree-day model was implemented first and discarded: the thermal
-requirement implied by NDVI-detected harvests swung too much between seasons
-(mean absolute error 13.7 days in leave-one-season-out replays). The shipped
-model instead regresses cycle duration on two predictors available at the
-freeze date, the spring rainfall accumulated from September 1 and the field's
-emergence day of year (dry springs and earlier emergence both lengthen the
-detected cycle), re-centered by each field's own median residual, with P10, P50
-and P90 taken from the pooled residual distribution. In a replay of the 2025/26
-season with data frozen on December 15, the P50 prediction landed a mean 4.5
-days from the harvest date later detected by satellite across the eleven
-fields, with the two largest errors at 11 days, just outside the 10-day
-tolerance the team set for itself; the actual harvest fell inside the P10-P90
-window for every field. This sits within the 3 to 12 day range reported in the
-phenology-detection literature cited above.
+code is open source in the repository.
+
+The first stage predicts the harvest. Detecting crop stages from smoothed
+vegetation-index time series is an established method, with reported errors of
+3 to 12 days for rice, maize and soybean (Sakamoto et al., 2005, Remote Sensing
+of Environment 96:366-374; Sakamoto et al., 2010, RSE 114:2146-2159). For each
+field, Sentinel-2 (10 m) and MODIS (daily) NDVI from 2019 onward are merged and
+smoothed with a Savitzky-Golay filter, the standard method for reconstructing
+NDVI series under cloud contamination (Chen et al., 2004, RSE 91:332-344), and
+used to detect emergence, peak and harvest dates for every past season. We
+built a growing-degree-day model on top of this first and discarded it: the
+thermal requirement implied by NDVI-detected harvests swung too widely between
+seasons, giving a mean absolute error of 13.7 days in leave-one-season-out
+replays. The shipped model instead regresses cycle duration on two predictors
+already available in December, the spring rainfall accumulated from September 1
+and the field's emergence day of year, re-centered by each field's own median
+residual, with P10, P50 and P90 read off the pooled residual distribution. Dry
+springs and earlier emergence both lengthen the cycle the satellite sees.
+Replaying the 2025/26 season with all data frozen on December 15, the P50
+prediction landed a mean of 4.5 days from the harvest date later detected by
+satellite across eleven fields: nine fields fell within 5 days, two missed by
+11 days, just outside the 10-day tolerance we set for ourselves before looking
+at the results, and the actual harvest landed inside the P10-P90 window on
+every field. That error sits inside the 3-to-12-day band the literature reports
+for this class of method. We kept the tolerance as written rather than widening
+it after the fact, and the two outliers are an open item in the repository.
 
 The second stage measures climate risk. For each candidate crop, each sowing
-date from January to March on a 5-day grid, and each year from 2000 to 2025,
+date from January to March on a 5-day grid, and each year from 2000 to 2026,
 the tool simulates a daily 100 mm soil water balance: NASA POWER and GPM
 rainfall in, crop demand out, with reference evapotranspiration derived from
 radiation and stage coefficients from the FAO Irrigation and Drainage Paper 56
@@ -116,34 +118,38 @@ A year counts as a failure when water stress during the crop's flowering stage
 exceeds its tolerance, and the share of successful years is the success
 probability. The results reproduce the gradient documented in Embrapa's
 second-crop corn literature, where yield potential falls and drought risk rises
-as sowing is delayed: in our table, corn sown on February 1 succeeds in 77% of
-historical years and close to 0% by March, while millet still succeeds in about
-70% of years in mid-March. The probability is also computed separately for El
-Nino, La Nina and neutral years classified by the NOAA ONI index (the
-interface exposes All years, La Nina and El Nino; the neutral sample, five
-years, is computed and published in the data but is not offered as a filter
-because a probability over five years is not meaningful to draw), following
-evidence that ENSO phase changes the length and timing of the sowing window in
-Central Brazil and that cropping calendars should be adjusted per phase
-(Heinemann et al., 2021, International Journal of Climatology,
-doi 10.1002/joc.6684).
+as sowing is delayed: in our table, corn sown on January 31 succeeds in 69% of
+the 27 historical years, drops to 50% by February 5, and reaches zero from
+February 20 onward, while millet still succeeds in 73% of years sown as late as
+March 17. That divergence is the whole decision: it is why a ten-day harvest
+delay can turn the ranking over. The probability is also computed separately
+for El Nino, La Nina and neutral years classified by the NOAA ONI index,
+following evidence that ENSO phase changes the length and timing of the sowing
+window in Central Brazil and that cropping calendars should be adjusted per
+phase (Heinemann et al., 2021, International Journal of Climatology,
+doi 10.1002/joc.6684). The interface offers All years, La Nina and El Nino as
+filters; the neutral sample is only five years, so it is computed and published
+in the data but deliberately not drawn as a curve.
 
 The third stage covers soil and pests. Bare-soil days are dry-season days with
-smoothed NDVI below 0.30; the demonstration fields show 100 to 110 bare days
-per year under the current rotation. Field studies in Brazil justify this as a
-degradation indicator: soil and water losses fall sharply with residue cover,
+smoothed NDVI below 0.30, measured per field from the satellite record rather
+than assumed. Under the current corn-only rotation the demonstration fields sit
+bare an average of 107 days a year; the corn-brachiaria consortium cuts that to
+11, and a crotalaria cover crop to 43. Field studies in Brazil justify this as
+a degradation indicator: soil and water losses fall sharply with residue cover,
 with roughly half the runoff at 90% cover compared to bare soil (Bragantia,
-2015). Slope from SRTM provides the erosion component. The pest table is built
-from the regional literature. Off-season Crotalaria spectabilis, alone or with
-ADR 300 pearl millet, was the most suitable option to reduce Pratylenchus
-brachyurus populations and soybean damage in trials run in Vera, Mato Grosso,
-the same region as our demonstration farm (Debiasi et al., 2016, Pesquisa
-Agropecuaria Brasileira), with suppression confirmed for sole-cropped
-crotalaria species (Cruz et al., 2020, Ciencia Rural). For the corn leafhopper,
-the corn-stunt outbreak in Brazil is attributed to overlapping corn seasons
-that sustain Dalbulus maidis year-round, with annual losses estimated at
-US$6.5 billion, and breaking that green bridge is listed among the core
-management measures (Pozebon et al., 2022, Journal of Economic Entomology,
+2015). Slope from SRTM provides the erosion component, and our eleven fields
+run from 2.7 to 4.0 degrees. The pest table is built from the regional
+literature. Off-season Crotalaria spectabilis, alone or with ADR 300 pearl
+millet, was the most suitable option to reduce Pratylenchus brachyurus
+populations and soybean damage in trials run in Vera, Mato Grosso, the same
+region as our demonstration farm (Debiasi et al., 2016, Pesquisa Agropecuaria
+Brasileira), with suppression confirmed for sole-cropped crotalaria species
+(Cruz et al., 2020, Ciencia Rural). For the corn leafhopper, the corn-stunt
+outbreak in Brazil is attributed to overlapping corn seasons that sustain
+Dalbulus maidis year-round, with annual losses estimated at US$6.5 billion, and
+breaking that green bridge is listed among the core management measures
+(Pozebon et al., 2022, Journal of Economic Entomology,
 doi 10.1093/jee/toac147). Our score therefore penalizes corn after corn and
 rewards a corn-free season when these pests are flagged. The corn-brachiaria
 card follows Embrapa trials showing the consortium maintains second-crop corn
@@ -152,7 +158,11 @@ grown over sole-corn residue by about 7 sacks per hectare.
 
 The fourth stage is the score: each strategy combines income potential, soil
 protection and success probability, normalized to a 0-100 scale and weighted by
-the farmer's slider settings, computed client-side in plain JavaScript.
+the farmer's slider settings, computed client-side in plain JavaScript. The
+same scoring runs field by field and is then aggregated area-weighted across
+the farm, so the tool also answers the question a manager actually asks, one
+succession crop for all 1,479 hectares, while showing which fields disagree
+with that choice.
 
 The immediate benefit is a better-timed succession decision: the tool shows
 each field's real planting window and the historical odds of each option, so
@@ -171,7 +181,9 @@ satellite exports, Python with pandas and SciPy for NDVI smoothing, phenology
 detection, the water balance and the scoring tables, and plain HTML, CSS and
 JavaScript with Leaflet and Tailwind for the site. The site is static, hosted
 on GitHub Pages, and reads pre-computed JSON tables. There is no server and no
-build step, so the demo cannot fail from infrastructure.
+build step, so the demo cannot fail from infrastructure. A farmer can also
+upload their own field boundary as a GeoJSON file and get the same analysis for
+their own land.
 
 The creative core of the project is that the harvest prediction is not the
 product but the measuring instrument. Most crop tools predict yield; Field
@@ -179,21 +191,23 @@ Shift predicts a date, because the date is what converts satellite data into an
 agronomic decision: how many days of rain remain. A second deliberate choice is
 honesty as a design feature. Predictions appear as P10, P50 and P90 ranges
 rather than single dates, every strategy card lists what the data does not
-cover, and a fixed notice states that the tool supports the farmer's agronomist
+cover, a five-year ENSO sample is withheld rather than drawn as a confident
+curve, and a fixed notice states that the tool supports the farmer's agronomist
 and does not replace them.
 
 The team considered three main factors. Scope was cut deliberately: one crop
 system and one region, represented by a demonstration farm of eleven real,
-rainfed fields near Sorriso, in the heart of Mato Grosso's grain belt, so that
-every number shown could be computed and verified within the event. Results were validated instead of
-assumed: the harvest model was tested by replaying the 2025/26 season with data
-frozen in December, and the water balance was accepted only after it reproduced
-the behavior documented in the agronomic literature cited above. Finally, the
-user shaped the interface: it is built for a farmer on a phone, in plain
-language that avoids technical vocabulary except where a tooltip can explain
-it. The demonstration site is presented in English for the international
-challenge; a Portuguese version for the Brazilian farmer is the natural first
-localization.
+rainfed fields totalling 1,479 hectares near Sorriso, in the heart of Mato
+Grosso's grain belt, so that every number shown could be computed and verified
+within the event. Results were validated instead of assumed: the harvest model
+was tested by replaying the 2025/26 season with data frozen in December, its
+first formulation was rejected on that evidence, and the water balance was
+accepted only after it reproduced the behavior documented in the agronomic
+literature cited above. Finally, the user shaped the interface: it is built for
+a farmer on a phone, in plain language that avoids technical vocabulary except
+where a tooltip can explain it. The demonstration site is presented in English
+for the international challenge; a Portuguese version for the Brazilian farmer
+is the natural first localization.
 
 Regarding the use of artificial intelligence: the team used Anthropic's Claude
 as an assistant for coding and for drafting text, always under team direction
