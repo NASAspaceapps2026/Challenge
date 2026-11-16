@@ -5,8 +5,7 @@ sections below. Fill the project page early, submit **at least 1 hour before the
 deadline** (plan rule). The team Owner edits the page: profile → My Teams → team →
 Create/Edit Project.
 
-Live site: https://nasaspaceapps2026.github.io/Challenge/ *(confirm the exact Pages
-URL in repo Settings → Pages before pasting)*
+Live site: https://nasaspaceapps2026.github.io/Challenge/
 Repo: https://github.com/NASAspaceapps2026/Challenge
 
 ---
@@ -35,7 +34,7 @@ bare-soil days observed by satellite, and adjusted for slope from SRTM and for
 pest cycle effects. The farmer sets the weight given to income, soil protection
 and risk.
 
-The interface is a satellite map of seven demonstration fields near Sorriso, with
+The interface is a satellite map of eleven demonstration fields near Sorriso, with
 ranked strategy cards per field. It runs in the browser, works on a phone, and
 states where the data ends and the agronomist's judgment begins.
 
@@ -90,11 +89,21 @@ and MODIS (daily) NDVI from 2019 onward are merged and smoothed with a
 Savitzky-Golay filter, the standard method for reconstructing NDVI series under
 cloud contamination (Chen et al., 2004, RSE 91:332-344), and used to detect
 emergence, peak and harvest dates for every past season. The distribution of
-the field's own emergence-to-harvest durations, adjusted by growing degree-days
-computed from NASA POWER temperatures, produces the P10, P50 and P90 dates for
-the current season. In a replay of the 2025/26 season with data frozen in
-December, the P50 prediction fell within 10 days of the harvest date later
-detected by satellite.
+the field's own emergence-to-harvest durations drives the prediction. A
+growing-degree-day model was implemented first and discarded: the thermal
+requirement implied by NDVI-detected harvests swung too much between seasons
+(mean absolute error 13.7 days in leave-one-season-out replays). The shipped
+model instead regresses cycle duration on two predictors available at the
+freeze date, the spring rainfall accumulated from September 1 and the field's
+emergence day of year (dry springs and earlier emergence both lengthen the
+detected cycle), re-centered by each field's own median residual, with P10, P50
+and P90 taken from the pooled residual distribution. In a replay of the 2025/26
+season with data frozen on December 15, the P50 prediction landed a mean 4.5
+days from the harvest date later detected by satellite across the eleven
+fields, with the two largest errors at 11 days, just outside the 10-day
+tolerance the team set for itself; the actual harvest fell inside the P10-P90
+window for every field. This sits within the 3 to 12 day range reported in the
+phenology-detection literature cited above.
 
 The second stage measures climate risk. For each candidate crop, each sowing
 date from January to March on a 5-day grid, and each year from 2000 to 2025,
@@ -110,7 +119,10 @@ second-crop corn literature, where yield potential falls and drought risk rises
 as sowing is delayed: in our table, corn sown on February 1 succeeds in 77% of
 historical years and close to 0% by March, while millet still succeeds in about
 70% of years in mid-March. The probability is also computed separately for El
-Nino, La Nina and neutral years classified by the NOAA ONI index, following
+Nino, La Nina and neutral years classified by the NOAA ONI index (the
+interface exposes All years, La Nina and El Nino; the neutral sample, five
+years, is computed and published in the data but is not offered as a filter
+because a probability over five years is not meaningful to draw), following
 evidence that ENSO phase changes the length and timing of the sowing window in
 Central Brazil and that cropping calendars should be adjusted per phase
 (Heinemann et al., 2021, International Journal of Climatology,
@@ -171,7 +183,7 @@ cover, and a fixed notice states that the tool supports the farmer's agronomist
 and does not replace them.
 
 The team considered three main factors. Scope was cut deliberately: one crop
-system and one region, represented by a demonstration farm of seven real,
+system and one region, represented by a demonstration farm of eleven real,
 rainfed fields near Sorriso, in the heart of Mato Grosso's grain belt, so that
 every number shown could be computed and verified within the event. Results were validated instead of
 assumed: the harvest model was tested by replaying the 2025/26 season with data
