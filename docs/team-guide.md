@@ -16,11 +16,6 @@ The decision depends on one key number — **when exactly will this field's soyb
 
 For a given soybean field, we use satellite imagery to **predict the harvest date**, which tells us the real planting window left this season. Then we **compare at least four succession strategies** — the current one (second-crop corn), corn + brachiaria grass, sorghum/millet, and a cover crop (crotalaria) — scoring each on **water risk, soil protection, and pest-cycle disruption**. The result is a simple interactive web page where the farmer sees ranked "strategy cards" and can adjust them with their own priorities and constraints.
 
-Two things to keep in mind:
-
-- **The harvest prediction is the engine, not the product.** Its job is to measure this year's real window. The product is the strategy comparison.
-- **The soil-health angle is what aligns us with the challenge.** Bare-soil days, crop residue, brachiaria and crotalaria benefits — without this, the tool is just corn logistics.
-
 ## 3. What the challenge requires (and how we match it)
 
 The official challenge asks for a decision-support tool using NASA Earth observations plus local soil/crop information and farmer priorities. The specific requirements and our answers:
@@ -88,12 +83,10 @@ An **optional backend** ("draw any farm on a map" → FastAPI calls the same ana
 ## 8. Two-day plan
 
 **Day 1 — the engine.**
-Kickoff and scope freeze → fire Google Earth Engine exports early (they take hours) → harvest prediction and water balance built in parallel → **checkpoint: one field working end-to-end in the browser.** Sleep.
+Kickoff and scope freeze → fire Google Earth Engine exports early (they take hours) → harvest prediction and water balance built in parallel → **checkpoint: one field working end-to-end in the browser.**
 
 **Day 2 — the product.**
 Strategy cards, scoring and farmer controls → all demo fields → deploy to GitHub Pages → backend only if time allows → **feature freeze 8h before the deadline** → video, slides, project page → **submit 1h before the deadline.**
-
-**If we fall behind, cut in this order:** backend → IMEA validation → El Niño filter → fewer fields. **Never cut the strategy cards with the soil-health content — they are the challenge.**
 
 ## 9. Supporting literature
 
