@@ -54,7 +54,7 @@ tailwind.config = {
       </div>
       <div class="flex items-center gap-2 text-xs">
         <span class="flex items-center gap-1.5 bg-agro-950/55 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-medium">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Demo farm · 11 fields
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> <span id="mode-badge">Demo farm · 11 fields</span>
         </span>
       </div>
     </div>
@@ -62,6 +62,7 @@ tailwind.config = {
     <div class="mt-5 flex flex-wrap items-center gap-1.5">
       <span class="text-xs text-emerald-100 font-bold mr-1">Choose a field:</span>
       <div id="field-chips" class="flex flex-wrap gap-1.5"></div>
+      <span id="byof-chip-note" class="hidden text-[11px] text-emerald-200/80 italic">demo fields, click to return to them</span>
     </div>
   </div>
 </header>
@@ -172,8 +173,124 @@ tailwind.config = {
   </section>
 </div>
 
-<!-- 2. CURVA NDVI -->
+<!-- 1.5 BRING YOUR OWN FIELD (BYOF) -->
 <section class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
+  <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+    <div class="flex items-center gap-2.5">
+      <div class="p-2 bg-indigo-100 text-indigo-700 rounded-xl"><i data-lucide="upload" class="w-6 h-6"></i></div>
+      <div>
+        <h3 class="text-lg font-extrabold text-slate-900">Bring your own field</h3>
+        <p class="text-xs text-slate-500">Upload your field boundary and get the same succession ranking for your own farm.</p>
+      </div>
+    </div>
+    <span class="text-[11px] font-bold bg-emerald-50 text-agro-800 border border-emerald-200 px-2.5 py-1 rounded-full flex items-center gap-1.5">
+      <i data-lucide="shield-check" class="w-3.5 h-3.5"></i> Your file stays in this browser
+    </span>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+    <!-- dropzone: hidden once a field is active (the chip row replaces it) -->
+    <div id="byof-setup" class="lg:col-span-5">
+      <div id="byof-drop" class="border-2 border-dashed border-slate-300 rounded-xl bg-slate-50 p-5 text-center transition hover:border-indigo-400 hover:bg-indigo-50/40">
+        <i data-lucide="map-pin" class="w-7 h-7 text-slate-400 mx-auto mb-1.5"></i>
+        <p class="text-xs font-bold text-slate-700">Drop a GeoJSON here</p>
+        <p class="text-[11px] text-slate-500 mt-0.5">or</p>
+        <label class="inline-block mt-1.5 cursor-pointer bg-agro-700 hover:bg-agro-800 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition">
+          Choose a file
+          <input id="byof-file" type="file" accept=".geojson,.json,application/geo+json,application/json" class="hidden">
+        </label>
+        <p class="text-[10px] text-slate-500 mt-2 leading-relaxed">
+          <code class="bg-white border border-slate-200 rounded px-1">.geojson</code> or
+          <code class="bg-white border border-slate-200 rounded px-1">.json</code> ·
+          FeatureCollection, Feature or a bare Polygon / MultiPolygon ·
+          coordinates as [longitude, latitude] (WGS84) · up to 50 fields, 2 MB.
+        </p>
+      </div>
+      <p id="byof-error" class="hidden mt-2 text-[11px] font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-2.5 leading-relaxed"></p>
+    </div>
+
+    <!-- farmer-provided inputs: live in BOTH modes, they drive the ranking -->
+    <div id="byof-inputs" class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <label for="byof-sowing" class="text-xs font-extrabold text-slate-700 block mb-1">When did you sow the soybean?</label>
+        <input id="byof-sowing" type="date" value="2025-10-25" min="2025-08-01" max="2026-03-31"
+               class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs">
+        <div id="byof-estimate" class="mt-2 bg-white border border-agro-600 rounded-lg p-2">
+          <span class="text-[10px] font-bold text-slate-500 block mb-1">Estimated harvest</span>
+          <div class="grid grid-cols-3 gap-1 text-center">
+            <div><span class="text-[9px] text-slate-500 block">early (P10)</span>
+              <span id="byof-est-p10" class="text-[11px] font-extrabold text-agro-800">—</span></div>
+            <div class="bg-agro-100 rounded"><span class="text-[9px] text-slate-600 block">likely (P50)</span>
+              <span id="byof-est-p50" class="text-xs font-extrabold text-agro-950">—</span></div>
+            <div><span class="text-[9px] text-slate-500 block">late (P90)</span>
+              <span id="byof-est-p90" class="text-[11px] font-extrabold text-amber-800">—</span></div>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+          <strong class="text-agro-800">We estimate this for you</strong> from
+          <strong id="byof-cycle-n">—</strong> soybean cycles measured by satellite on the demo farm's 11 fields
+          (2019&ndash;2026): sowing to harvest took <strong id="byof-cycle-p50">—</strong> days in half of them, between
+          <strong id="byof-cycle-p10">—</strong> and <strong id="byof-cycle-p90">—</strong> in 80%.
+          It is a <strong>regional average, not a reading of your field</strong> &mdash; cultivar and weather shift it.
+        </p>
+      </div>
+      <div class="bg-slate-50 border border-slate-200 rounded-xl p-3.5">
+        <label for="byof-slope" class="text-xs font-extrabold text-slate-700 block mb-1">Average slope (degrees)</label>
+        <input id="byof-slope" type="number" min="0" max="45" step="0.1"
+               class="w-full border border-slate-300 rounded-lg px-2 py-1.5 text-xs">
+        <p class="text-[10px] text-slate-500 mt-1.5 leading-relaxed">
+          Optional. The default <strong id="byof-slope-default">—</strong> is a
+          <strong>regional assumption</strong> (mean slope of the demo farm's fields, from SRTM), not a measurement of your land.
+          Slope only affects the erosion term of soil protection.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- active state -->
+  <div id="byof-active" class="hidden">
+    <div class="flex flex-wrap items-center gap-2 mb-3">
+      <span class="text-xs text-slate-700 font-bold mr-1">Your field:</span>
+      <div id="byof-chips" class="flex flex-wrap gap-1.5"></div>
+      <button id="byof-back" class="ml-auto text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg transition flex items-center gap-1.5">
+        <i data-lucide="corner-up-left" class="w-3.5 h-3.5"></i> Back to the demo farm
+      </button>
+    </div>
+    <div id="byof-region-warning" class="hidden mb-3 bg-rose-50 border-2 border-rose-300 rounded-xl p-3.5 flex items-start gap-2.5">
+      <i data-lucide="alert-octagon" class="w-5 h-5 text-rose-600 shrink-0 mt-0.5"></i>
+      <p class="text-xs text-rose-900 leading-relaxed"><strong>This field is outside the Sorriso region.</strong>
+        <span id="byof-region-detail"></span>
+        The water-success table and the rain climatology behind this ranking were built from NASA POWER data for
+        Sorriso, Mato Grosso only. <strong>The ranking below is not valid for your location.</strong>
+        We still show it so you can see how the tool works, but do not plan on it.</p>
+    </div>
+    <div class="bg-amber-50 border-2 border-amber-300 rounded-xl p-3.5">
+      <div class="flex items-start gap-2.5">
+        <i data-lucide="info" class="w-5 h-5 text-amber-700 shrink-0 mt-0.5"></i>
+        <div class="text-xs text-amber-900 leading-relaxed">
+          <strong class="block mb-1">What is reduced for your own field, compared with the demo farm</strong>
+          <ul class="space-y-1 list-disc pl-4">
+            <li><strong>The harvest date is a regional estimate, not a reading of your field.</strong> On the demo farm we
+              predict it from each field's own NDVI history. For your field we have no such history, so we add the
+              regional cycle length (measured on the 11 demo fields) to the sowing date you typed. Cultivar, soil and
+              weather move it, so treat the P10&ndash;P90 band as the real answer, not the single P50 date.</li>
+            <li><strong>Bare-soil days are a regional average</strong> across the demo farm's 11 fields, per strategy
+              (<span id="byof-bare-detail">—</span>), not measured on your field.</li>
+            <li><strong>Recurrent low-vigor zones are unavailable.</strong> Detecting them needs 3+ seasons of NDVI in
+              the same pixels. So the crotalaria nematode-suppression bonus does not fire for your field.</li>
+            <li><strong>Hidden panels:</strong> the NDVI curve, the 2025/26 replay, relative productivity and the
+              low-vigor map layer are hidden, because they would be either empty or another field's data.</li>
+          </ul>
+          <p class="mt-1.5">Still fully live: the water-success table, the rain climatology, the ENSO scenarios,
+            the pest-cycle effects, your priority sliders and the farm constraints.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 2. CURVA NDVI -->
+<section id="sec-ndvi" class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
   <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
     <div class="flex items-center gap-2.5">
       <div class="p-2 bg-emerald-100 text-agro-800 rounded-xl"><i data-lucide="activity" class="w-6 h-6"></i></div>
@@ -255,7 +372,7 @@ tailwind.config = {
 </section>
 
 <!-- 3.8 VISÃO DA FAZENDA (TG.5) -->
-<section class="bg-white rounded-2xl shadow-sm border-2 border-agro-600 p-5">
+<section id="sec-farm-view" class="bg-white rounded-2xl shadow-sm border-2 border-agro-600 p-5">
   <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
     <div class="flex items-center gap-2.5">
       <div class="p-2 bg-agro-100 text-agro-800 rounded-xl"><i data-lucide="tractor" class="w-6 h-6"></i></div>
@@ -358,11 +475,12 @@ async function loadData() {
 
 /* ------------------------------------------------ mapa */
 let map, fieldLayers = {};
+let demoLayer = null, demoSpotsLayer = null; // kept so BYOF can hide and restore them
 function initMap() {
   map = L.map("agro-map", { zoomControl: true });
   L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
     { attribution: "Satellite &copy; Esri, Maxar", maxZoom: 19 }).addTo(map);
-  const layer = L.geoJSON(S.data.fields, {
+  const layer = demoLayer = L.geoJSON(S.data.fields, {
     style: f => styleFor(f.properties.id),
     onEachFeature: (f, lyr) => {
       fieldLayers[f.properties.id] = lyr;
@@ -372,7 +490,7 @@ function initMap() {
   }).addTo(map);
   // TG.1 — recurrent low-vigor zones (honest label: never "disease detected")
   if ((S.data.spots.features || []).length) {
-    L.geoJSON(S.data.spots, {
+    demoSpotsLayer = L.geoJSON(S.data.spots, {
       style: { color: "#dc2626", weight: 1.5, dashArray: "4 3", fillColor: "#ef4444", fillOpacity: 0.35 },
       onEachFeature: (f, lyr) => {
         const p = f.properties;
@@ -605,6 +723,29 @@ function readControls() {
 
 /* Score all strategies for one field with its OWN harvest date + attributes. */
 function scoreField(fieldId, ctl) {
+  // BYOF — an uploaded field has no NDVI history: the harvest date comes from
+  // the farmer, bare_soil is the regional mean, and recurrentSpots is false
+  // (so the crotalaria +8 bonus cannot fire). Same scoreStrategies() call.
+  if (BYOF.active) {
+    const bf = BYOF.fields.find(x => x.id === fieldId) ||
+               BYOF.fields.find(x => x.id === BYOF.selected);
+    const sowingByof = addDays(byofHarvest().p50, S.slip + S.TURNAROUND_DAYS);
+    return {
+      sowing: sowingByof, fieldSpots: [],
+      ranked: FieldShiftScoring.scoreStrategies({
+        recurrentSpots: false,            // no multi-season NDVI for uploaded fields
+        sowingISO: sowingByof,
+        scenario: ctl.scenario,
+        weights: ctl.weights,
+        selectedPests: ctl.selectedPests,
+        constraints: ctl.constraints,
+        slopeDeg: byofSlope(),
+        bareSoil: byofRegionalBareSoil(), // regional average, labelled as such
+        successTable: S.data.success,
+        pests: S.data.pests,
+      }),
+    };
+  }
   const h = S.data.harvest[fieldId];
   const sowing = h ? addDays(h.p50, S.slip + S.TURNAROUND_DAYS) : "2026-02-15";
   const feat = (S.data.fields.features || []).find(f => f.properties.id === fieldId);
@@ -631,13 +772,15 @@ function renderCards() {
   const { sowing, fieldSpots, ranked } = scoreField(S.fieldId, ctl);
   document.getElementById("ctl-sowing-date").textContent = fmtDay(sowing);
   renderRainGauge(sowing, ctl.scenario); // TG.2/TG.8 — gauge follows the slip slider and the ENSO scenario
-  renderFarmView(ctl);     // TG.5 — farm-level aggregation, same controls
+  if (!BYOF.active) renderFarmView(ctl); // TG.5 — demo farm only (section is hidden in BYOF mode)
 
   const wrap = document.getElementById("strategy-cards");
   wrap.innerHTML = ranked.map((r, i) => {
     const txt = cardsText(r.id);
     const prob = r.successProb === null ? "—" : Math.round(r.successProb * 100) + "%";
-    const bare = (S.data.bareSoil[S.fieldId] || {})[r.id];
+    const bare = BYOF.active
+      ? byofRegionalBareSoil()[r.id]
+      : (S.data.bareSoil[S.fieldId] || {})[r.id];
     const medal = r.disabled ? "" : (["🥇", "🥈", "🥉"][i] || "");
     const dis = r.disabled;
     return `
@@ -661,7 +804,9 @@ function renderCards() {
           <span class="font-extrabold text-slate-900">${prob}</span>
         </div>
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
-          <span class="font-semibold text-slate-500 block gloss" title="Days per year with bare soil, exposed to erosion and water loss">Bare soil/year</span>
+          <span class="font-semibold text-slate-500 block gloss" title="${BYOF.active
+            ? "Regional average across the 11 demo fields — not measured on your uploaded field"
+            : "Days per year with bare soil, exposed to erosion and water loss"}">Bare soil/year${BYOF.active ? " <span class=\"text-amber-600\">(regional)</span>" : ""}</span>
           <span class="font-extrabold text-slate-900">${bare != null ? bare + " days" : "—"}</span>
         </div>
         <div class="bg-slate-50 rounded-lg p-2 border border-slate-100">
@@ -999,14 +1144,17 @@ function initControls() {
     b.textContent = f.properties.id;
     b.dataset.id = f.properties.id;
     b.className = chipClass(f.properties.id === S.fieldId);
-    b.onclick = () => selectField(f.properties.id);
+    b.onclick = () => {
+      if (BYOF.active) { S.fieldId = f.properties.id; byofDeactivate(); }
+      else selectField(f.properties.id);
+    };
     chips.appendChild(b);
   }
   document.getElementById("ctl-slip").oninput = e => {
     S.slip = +e.target.value;
     document.getElementById("ctl-slip-val").textContent =
       (S.slip > 0 ? "+" : "") + S.slip + " days";
-    selectField(S.fieldId);
+    if (BYOF.active) byofRender(); else selectField(S.fieldId);
   };
   document.querySelectorAll("#ctl-scenario .scen-btn").forEach(b => {
     b.className = scenClass(b.dataset.scen === S.scenario);
@@ -1027,11 +1175,563 @@ const scenClass = active =>
   (active ? "bg-agro-700 text-white border-agro-700"
           : "bg-white text-slate-600 border-slate-200 hover:border-agro-600");
 
+/* ============================================================== BYOF
+ * "Bring your own field": the farmer uploads a GeoJSON boundary and gets the
+ * same succession ranking. Everything is client-side; the file is parsed with
+ * FileReader and never leaves the browser (no fetch, no upload).
+ *
+ * HONESTY: for uploaded fields we have no multi-season NDVI, so:
+ *   - harvest P50 is typed by the farmer (not predicted from NDVI);
+ *   - bare_soil is the regional mean of the 11 demo fields, per strategy;
+ *   - recurrentSpots is false (the crotalaria +8 bonus must not fire);
+ *   - NDVI curve / replay / productivity / spots panels hide instead of
+ *     rendering empty or showing another field's data.
+ */
+const BYOF = {
+  active: false,
+  fields: [],        // [{id, name, area_ha, centroid:[lon,lat], outside, feature}]
+  selected: null,    // id
+  layer: null,       // Leaflet GeoJSON layer for the uploaded polygons
+  layers: {},        // id -> leaflet layer
+  MAX_FEATURES: 50,
+  MAX_BYTES: 2 * 1024 * 1024,
+  P10_OFFSET: -13,   // matches the spread in web/data/harvest.json
+  P90_OFFSET: 14,
+  // Sorriso / northern Mato Grosso envelope — the extent our tables cover
+  REGION: { lonMin: -62, lonMax: -50, latMin: -18, latMax: -7 },
+};
+
+/* ---------- geometry: spherical shoelace, no library -------------------- */
+const EARTH_R = 6371008.8; // m, IUGG mean radius
+const DEG = Math.PI / 180;
+
+/* Signed area of one linear ring on the sphere (m^2), via the spherical
+ * excess summed over consecutive vertex pairs. */
+function ringAreaM2(ring) {
+  const n = ring.length;
+  if (n < 3) return 0;
+  let total = 0;
+  for (let i = 0; i < n; i++) {
+    const [lon1, lat1] = ring[i];
+    const [lon2, lat2] = ring[(i + 1) % n];
+    total += (lon2 - lon1) * DEG * (2 + Math.sin(lat1 * DEG) + Math.sin(lat2 * DEG));
+  }
+  return Math.abs(total * EARTH_R * EARTH_R / 2);
+}
+
+/* Polygon area in hectares: outer ring minus holes. */
+function polygonAreaHa(rings) {
+  if (!rings.length) return 0;
+  let a = ringAreaM2(rings[0]);
+  for (let i = 1; i < rings.length; i++) a -= ringAreaM2(rings[i]);
+  return Math.max(0, a) / 10000;
+}
+
+function geometryAreaHa(geom) {
+  if (geom.type === "Polygon") return polygonAreaHa(geom.coordinates);
+  return geom.coordinates.reduce((sum, poly) => sum + polygonAreaHa(poly), 0);
+}
+
+/* Centroid: area-weighted mean of the outer-ring vertices. Good enough for
+ * fitting the map and for the region check (this is not cadastral work). */
+function geometryCentroid(geom) {
+  const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+  let sx = 0, sy = 0, sw = 0;
+  for (const rings of polys) {
+    const ring = rings[0] || [];
+    if (!ring.length) continue;
+    const w = ringAreaM2(ring) || 1;
+    let cx = 0, cy = 0;
+    for (const [lon, lat] of ring) { cx += lon; cy += lat; }
+    sx += (cx / ring.length) * w; sy += (cy / ring.length) * w; sw += w;
+  }
+  return sw ? [sx / sw, sy / sw] : [0, 0];
+}
+
+/* ---------- validation ------------------------------------------------- */
+/* Throws Error with a specific, farmer-readable message. */
+function byofValidateGeometry(geom, label) {
+  if (!geom || typeof geom !== "object")
+    throw new Error(label + " has no geometry.");
+  if (geom.type !== "Polygon" && geom.type !== "MultiPolygon")
+    throw new Error(label + " is a " + (geom.type || "geometry with no type") + ". " +
+      "A field boundary must be a Polygon or a MultiPolygon — points and lines have no area to plan on.");
+  if (!Array.isArray(geom.coordinates) || !geom.coordinates.length)
+    throw new Error(label + " has an empty coordinates array.");
+
+  const polys = geom.type === "Polygon" ? [geom.coordinates] : geom.coordinates;
+  let swapped = false, outOfRangeLat = false, checked = 0;
+  // extents, to catch an in-range swap: a Brazilian field written [lat, lon]
+  // gives lon ~ -12 and lat ~ -55, both legal numbers on their own.
+  let lonMin = Infinity, lonMax = -Infinity, latMin = Infinity, latMax = -Infinity;
+  for (const rings of polys) {
+    if (!Array.isArray(rings) || !rings.length)
+      throw new Error(label + " has a polygon with no rings.");
+    for (const ring of rings) {
+      if (!Array.isArray(ring))
+        throw new Error(label + " has a ring that is not an array of positions.");
+      if (ring.length < 4)
+        throw new Error(label + " has a ring with only " + ring.length + " position" +
+          (ring.length === 1 ? "" : "s") + ". A closed ring needs at least 4 " +
+          "(the last one repeating the first).");
+      for (const pos of ring) {
+        if (!Array.isArray(pos) || pos.length < 2 ||
+            typeof pos[0] !== "number" || typeof pos[1] !== "number" ||
+            !isFinite(pos[0]) || !isFinite(pos[1]))
+          throw new Error(label + " has a coordinate that is not a numeric [longitude, latitude] pair.");
+        const lon = pos[0], lat = pos[1];
+        if (Math.abs(lat) > 90) { swapped = true; outOfRangeLat = true; }
+        if (lon < lonMin) lonMin = lon;
+        if (lon > lonMax) lonMax = lon;
+        if (lat < latMin) latMin = lat;
+        if (lat > latMax) latMax = lat;
+        if (Math.abs(lon) > 180)
+          throw new Error(label + " has a longitude of " + lon.toFixed(2) +
+            ", outside the valid range −180 to 180. The file may be in a projected CRS " +
+            "(UTM metres, for example) rather than WGS84 degrees. Reproject it to EPSG:4326 and upload again.");
+        checked++;
+      }
+    }
+  }
+  // In-range swap: every latitude would be an impossible latitude once you read
+  // the pair the other way round — i.e. |lat| is in 90..180 territory for the
+  // *longitude* slot. Catch the common Brazilian case [lat, lon] = [-12, -55]:
+  // here lat would be -55 (plausible) but lon -12 (also plausible), so instead
+  // test whether swapping lands the centroid inside our region while the file
+  // as written does not, AND the written latitude is outside Brazil's range.
+  if (!swapped && checked) {
+    const R = BYOF.REGION;
+    const cLon = (lonMin + lonMax) / 2, cLat = (latMin + latMax) / 2;
+    const asWritten = cLon >= R.lonMin && cLon <= R.lonMax && cLat >= R.latMin && cLat <= R.latMax;
+    const ifSwapped = cLat >= R.lonMin && cLat <= R.lonMax && cLon >= R.latMin && cLon <= R.latMax;
+    if (!asWritten && ifSwapped) swapped = true;
+  }
+  if (swapped) {
+    const why = outOfRangeLat
+      ? "has a latitude beyond ±90, so the coordinates look swapped"
+      : "looks like it has latitude and longitude swapped: as written the field sits at longitude " +
+        ((lonMin + lonMax) / 2).toFixed(2) + ", latitude " + ((latMin + latMax) / 2).toFixed(2);
+    throw new Error(label + " " + why + ". " +
+      "GeoJSON positions must be [longitude, latitude] — in Mato Grosso that is roughly " +
+      "[−55, −12], not [−12, −55]. Swap the two numbers in each position and upload again.");
+  }
+  if (!checked) throw new Error(label + " has no coordinates.");
+}
+
+/* Normalize a parsed GeoJSON into a list of {geometry, properties}. */
+function byofExtractFeatures(gj) {
+  if (!gj || typeof gj !== "object" || Array.isArray(gj))
+    throw new Error("This file is not a GeoJSON object. The top level should be a FeatureCollection, " +
+      "a Feature, or a Polygon geometry.");
+
+  const t = gj.type;
+  if (t === "FeatureCollection") {
+    if (!Array.isArray(gj.features))
+      throw new Error('This FeatureCollection has no "features" array.');
+    if (!gj.features.length)
+      throw new Error("This FeatureCollection is empty: it contains no fields to analyze.");
+    return gj.features.map(function (f, i) {
+      if (!f || typeof f !== "object")
+        throw new Error("Feature " + (i + 1) + " is not an object.");
+      return { geometry: f.geometry, properties: f.properties || {} };
+    });
+  }
+  if (t === "Feature") return [{ geometry: gj.geometry, properties: gj.properties || {} }];
+  if (t === "Polygon" || t === "MultiPolygon") return [{ geometry: gj, properties: {} }];
+  if (t === "GeometryCollection")
+    throw new Error("This is a GeometryCollection. Export your field boundaries as a " +
+      "FeatureCollection of polygons instead.");
+  if (t === "Point" || t === "MultiPoint" || t === "LineString" || t === "MultiLineString")
+    throw new Error("This file holds a " + t + ", which has no area. A field boundary must be a " +
+      "Polygon or MultiPolygon — in QGIS or your farm software, export the field as a polygon layer.");
+  if (typeof t !== "string")
+    throw new Error('This JSON has no "type" field, so it is not GeoJSON. If it came from your farm ' +
+      'management software, look for an export option named GeoJSON or "shapefile → GeoJSON".');
+  throw new Error('Unsupported GeoJSON type "' + t + '". Expected a FeatureCollection, a Feature, ' +
+    "or a Polygon / MultiPolygon geometry.");
+}
+
+/* Regional mean bare-soil days per strategy, computed from bare_soil.json at
+ * load. Labelled in the UI as a regional average — never as this field's own. */
+function byofRegionalBareSoil() {
+  const bs = S.data.bareSoil || {};
+  const out = {}, count = {};
+  for (const fid of Object.keys(bs)) {
+    for (const [k, v] of Object.entries(bs[fid] || {})) {
+      if (typeof v === "number" && isFinite(v)) {
+        out[k] = (out[k] || 0) + v; count[k] = (count[k] || 0) + 1;
+      }
+    }
+  }
+  for (const k of Object.keys(out)) out[k] = Math.round(out[k] / count[k]);
+  return out;
+}
+
+/* Regional mean slope of the demo fields — the default for the slope input. */
+function byofRegionalSlope() {
+  const vals = (S.data.fields.features || [])
+    .map(f => f.properties.slope_deg)
+    .filter(v => typeof v === "number" && isFinite(v));
+  if (!vals.length) return 3.2;
+  return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length * 10) / 10;
+}
+
+/* ---------- file handling ---------------------------------------------- */
+function byofShowError(msg) {
+  const el = document.getElementById("byof-error");
+  el.innerHTML = "<strong>Could not read that file.</strong> " + msg;
+  el.classList.remove("hidden");
+}
+function byofClearError() {
+  document.getElementById("byof-error").classList.add("hidden");
+}
+
+function byofHandleFile(file) {
+  byofClearError();
+  if (!file) return;
+
+  const name = (file.name || "").toLowerCase();
+  if (!/\.(geojson|json)$/.test(name)) {
+    byofShowError('"' + file.name + '" is not a .geojson or .json file. ' +
+      "If you have a shapefile (.shp) or a KML, convert it to GeoJSON first — " +
+      "QGIS and mapshaper.org both do it for free.");
+    return;
+  }
+  if (file.size > BYOF.MAX_BYTES) {
+    byofShowError("That file is " + (file.size / 1048576).toFixed(1) + " MB; the limit is 2 MB. " +
+      "Field boundaries are usually a few kilobytes, so this one probably carries very dense " +
+      "vertices — simplify it (in QGIS: Vector → Geometry Tools → Simplify) and upload again.");
+    return;
+  }
+  if (file.size === 0) { byofShowError('"' + file.name + '" is empty (0 bytes).'); return; }
+
+  const reader = new FileReader();
+  reader.onerror = () => byofShowError("The browser could not read that file from disk. Try uploading it again.");
+  reader.onload = () => {
+    let gj;
+    try {
+      gj = JSON.parse(reader.result);
+    } catch (e) {
+      byofShowError("The file is not valid JSON (" + e.message + "). " +
+        'Open it in a text editor and check it starts with "{" — a truncated download or a ' +
+        "zipped file would both fail here.");
+      return;
+    }
+    try {
+      byofBuildFields(gj, file.name);
+    } catch (e) {
+      byofShowError(e && e.message ? e.message : String(e));
+    }
+  };
+  try {
+    reader.readAsText(file);
+  } catch (e) {
+    byofShowError("The browser refused to open that file. Try choosing it with the button instead of dragging it.");
+  }
+}
+
+function byofBuildFields(gj, fileName) {
+  const raw = byofExtractFeatures(gj);
+  if (raw.length > BYOF.MAX_FEATURES)
+    throw new Error("That file holds " + raw.length + " features; the limit is " + BYOF.MAX_FEATURES +
+      ". Upload a subset of your fields, or split the file.");
+
+  const fields = [];
+  raw.forEach(function (f, i) {
+    const label = raw.length === 1 ? "This field" : "Feature " + (i + 1);
+    byofValidateGeometry(f.geometry, label);
+    const props = f.properties || {};
+    const given = props.id != null ? props.id
+                : props.name != null ? props.name
+                : props.Name != null ? props.Name
+                : props.NAME != null ? props.NAME : null;
+    const id = (given != null && String(given).trim()) ? String(given).trim() : "My field " + (i + 1);
+    const area = geometryAreaHa(f.geometry);
+    if (!(area > 0))
+      throw new Error(label + ' ("' + id + '") came out with zero area. Its ring may be degenerate ' +
+        "(all vertices on one line) or the coordinates may not be in degrees.");
+    const centroid = geometryCentroid(f.geometry);
+    const R = BYOF.REGION;
+    const outside = centroid[0] < R.lonMin || centroid[0] > R.lonMax ||
+                    centroid[1] < R.latMin || centroid[1] > R.latMax;
+    fields.push({
+      id: id, name: id, area_ha: Math.round(area * 10) / 10,
+      centroid: centroid, outside: outside,
+      feature: { type: "Feature", properties: { id: id, name: id, area_ha: area }, geometry: f.geometry },
+    });
+  });
+
+  // Unique ids — duplicates would collide in the chip row and the layer map.
+  const seen = {};
+  for (const f of fields) {
+    if (seen[f.id]) { seen[f.id] += 1; f.id = f.id + " (" + seen[f.id] + ")"; f.name = f.id; }
+    else seen[f.id] = 1;
+    f.feature.properties.id = f.id;
+  }
+
+  BYOF.fields = fields;
+  BYOF.selected = fields[0].id;
+  byofActivate(fileName);
+}
+
+/* ---------- activate / deactivate -------------------------------------- */
+function byofActivate(fileName) {
+  BYOF.active = true;
+  byofClearError();
+
+  // map: hide the demo layers, draw the uploaded polygons
+  if (BYOF.layer) { map.removeLayer(BYOF.layer); BYOF.layer = null; }
+  BYOF.layers = {};
+  if (demoLayer && map.hasLayer(demoLayer)) map.removeLayer(demoLayer);
+  if (demoSpotsLayer && map.hasLayer(demoSpotsLayer)) map.removeLayer(demoSpotsLayer);
+
+  BYOF.layer = L.geoJSON(
+    { type: "FeatureCollection", features: BYOF.fields.map(f => f.feature) },
+    {
+      style: f => byofStyleFor(f.properties.id),
+      onEachFeature: function (f, lyr) {
+        const id = f.properties.id;
+        BYOF.layers[id] = lyr;
+        lyr.on("click", () => byofSelect(id));
+        lyr.bindTooltip("<strong>" + id + "</strong> · " + Math.round(f.properties.area_ha) + " ha<br>" +
+          "<em>your field (uploaded, not satellite-analyzed)</em>", { sticky: true });
+      },
+    }).addTo(map);
+  try { map.fitBounds(BYOF.layer.getBounds().pad(0.2)); } catch (e) { /* degenerate bounds */ }
+
+  document.getElementById("byof-setup").classList.add("hidden");
+  // the farmer inputs stay visible and take the full width once the dropzone goes
+  document.getElementById("byof-inputs").classList.replace("lg:col-span-7", "lg:col-span-12");
+  document.getElementById("byof-active").classList.remove("hidden");
+  document.getElementById("byof-chip-note").classList.remove("hidden");
+  document.getElementById("mode-badge").textContent =
+    "Your field" + (BYOF.fields.length > 1 ? "s" : "") + " · " + BYOF.fields.length + " uploaded";
+
+  const bare = byofRegionalBareSoil();
+  document.getElementById("byof-bare-detail").textContent =
+    Object.entries(FieldShiftScoring.STRATEGIES)
+      .map(([id, s]) => s.label + ": " + (bare[id] != null ? bare[id] + " d" : "n/a")).join(" · ");
+
+  byofSelect(BYOF.selected);
+  lucide.createIcons();
+}
+
+function byofDeactivate() {
+  BYOF.active = false;
+  if (BYOF.layer) { map.removeLayer(BYOF.layer); BYOF.layer = null; }
+  BYOF.layers = {};
+  BYOF.fields = [];
+  BYOF.selected = null;
+
+  // reset the upload control so the same file can be picked again
+  const inp = document.getElementById("byof-file");
+  if (inp) inp.value = "";
+  byofClearError();
+  document.getElementById("byof-setup").classList.remove("hidden");
+  document.getElementById("byof-inputs").classList.replace("lg:col-span-12", "lg:col-span-7");
+  document.getElementById("byof-active").classList.add("hidden");
+  document.getElementById("byof-chip-note").classList.add("hidden");
+  document.getElementById("byof-region-warning").classList.add("hidden");
+  document.getElementById("mode-badge").textContent =
+    "Demo farm · " + (S.data.fields.features || []).length + " fields";
+
+  // restore the demo farm exactly: re-show panels, re-add layers, refit, re-render
+  for (const el of ["sec-ndvi", "sec-farm-view"]) document.getElementById(el).classList.remove("hidden");
+  if (demoLayer && !map.hasLayer(demoLayer)) demoLayer.addTo(map);
+  if (demoSpotsLayer && !map.hasLayer(demoSpotsLayer)) demoSpotsLayer.addTo(map);
+  if (demoLayer) { try { map.fitBounds(demoLayer.getBounds().pad(0.15)); } catch (e) {} }
+  selectField(S.fieldId); // rebuilds harvest box, replay, productivity, spots, NDVI, cards
+  lucide.createIcons();
+}
+
+const byofStyleFor = id => ({
+  color: id === BYOF.selected ? "#fbbf24" : "#818cf8",
+  weight: id === BYOF.selected ? 3 : 2,
+  fillColor: id === BYOF.selected ? "#fbbf24" : "#6366f1",
+  fillOpacity: id === BYOF.selected ? 0.25 : 0.12,
+});
+
+/* Soybean cycle length (emergence -> harvest) measured on the demo farm, from
+ * phenology.json. Percentiles, not mean +- sd: the distribution is skewed
+ * (late sowing shortens the cycle), so percentiles describe what actually
+ * happened instead of assuming a bell shape.
+ *
+ * We report P10/P50/P90 to stay consistent with harvest.json and the panels
+ * above. P25/P75 would look tighter but would leave the real harvest outside
+ * the band in ~44% of seasons, against ~19% for P10/P90. */
+let _cycleCache = null;
+function byofCycleStats() {
+  if (_cycleCache) return _cycleCache;
+  const days = [];
+  for (const rows of Object.values(S.data.phenology || {})) {
+    for (const r of rows || []) {
+      if (r && r.emergence && r.harvest) {
+        const d = diffDays(r.emergence, r.harvest);
+        if (isFinite(d) && d > 30 && d < 200) days.push(d);
+      }
+    }
+  }
+  days.sort((a, b) => a - b);
+  // Fallback if phenology.json is missing: the medians measured on this farm.
+  if (days.length < 5) {
+    _cycleCache = { n: 0, p10: 74, p50: 90, p90: 102, fallback: true };
+    return _cycleCache;
+  }
+  const q = p => days[Math.max(0, Math.min(days.length - 1, Math.round(p * (days.length - 1))))];
+  _cycleCache = { n: days.length, p10: q(0.10), p50: q(0.50), p90: q(0.90), fallback: false };
+  return _cycleCache;
+}
+
+/* Days from sowing to emergence. NDVI detects emergence, not the planter, so
+ * the measured cycle starts at emergence; soybean takes about a week to come
+ * up. Stated in the UI rather than hidden in the arithmetic. */
+const SOW_TO_EMERGENCE_DAYS = 6;
+
+/* Estimated harvest window for an uploaded field, from the sowing date the
+ * farmer typed plus the regional cycle distribution. This is an ESTIMATE from
+ * regional history — not a per-field NDVI prediction like the demo farm's. */
+function byofHarvest() {
+  const v = document.getElementById("byof-sowing").value;
+  const sown = /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : "2025-10-25";
+  const c = byofCycleStats();
+  const base = addDays(sown, SOW_TO_EMERGENCE_DAYS);
+  return {
+    p10: addDays(base, c.p10),
+    p50: addDays(base, c.p50),
+    p90: addDays(base, c.p90),
+    provisional: false,
+    sownISO: sown,
+  };
+}
+
+function byofSlope() {
+  const v = parseFloat(document.getElementById("byof-slope").value);
+  return isFinite(v) && v >= 0 && v <= 45 ? v : byofRegionalSlope();
+}
+
+function byofSelect(id) {
+  BYOF.selected = id;
+  for (const [fid, lyr] of Object.entries(BYOF.layers)) lyr.setStyle(byofStyleFor(fid));
+  byofRender();
+}
+
+/* Re-render everything for the selected uploaded field. */
+function byofRender() {
+  const f = BYOF.fields.find(x => x.id === BYOF.selected);
+  if (!f) return;
+  const set = (el, v) => document.getElementById(el).textContent = v;
+
+  // chips
+  const chips = document.getElementById("byof-chips");
+  chips.innerHTML = "";
+  for (const bf of BYOF.fields) {
+    const b = document.createElement("button");
+    b.textContent = bf.id + " · " + Math.round(bf.area_ha) + " ha" + (bf.outside ? " ⚠" : "");
+    b.className = "text-xs font-bold px-3 py-1.5 rounded-lg border transition cursor-pointer " +
+      (bf.id === BYOF.selected ? "bg-indigo-600 text-white border-indigo-600"
+                               : "bg-white text-slate-600 border-slate-300 hover:border-indigo-500");
+    b.onclick = () => byofSelect(bf.id);
+    chips.appendChild(b);
+  }
+
+  // region guard
+  const warn = document.getElementById("byof-region-warning");
+  if (f.outside) {
+    warn.classList.remove("hidden");
+    document.getElementById("byof-region-detail").textContent =
+      "Its centre is at " + f.centroid[1].toFixed(3) + "°, " + f.centroid[0].toFixed(3) + "° " +
+      "(we expect roughly latitude −7 to −18, longitude −50 to −62).";
+  } else {
+    warn.classList.add("hidden");
+  }
+
+  // harvest window — estimated from the sowing date + regional cycle history
+  const h = byofHarvest();
+  const c = byofCycleStats();
+  set("byof-est-p10", fmtDay(h.p10));
+  set("byof-est-p50", fmtDay(h.p50));
+  set("byof-est-p90", fmtDay(h.p90));
+  set("sel-field-name", f.id);
+  set("harvest-p10", fmtDay(h.p10));
+  set("harvest-p50", fmtDay(addDays(h.p50, S.slip)));
+  set("harvest-p90", fmtDay(h.p90));
+  set("harvest-p50-inline", fmtDay(addDays(h.p50, S.slip)));
+  document.getElementById("harvest-provisional-badge").classList.add("hidden");
+
+  // panels that genuinely need multi-season NDVI: hide, never render empty
+  for (const el of ["replay-box", "prod-box", "spots-box"]) document.getElementById(el).classList.add("hidden");
+  for (const el of ["sec-ndvi", "sec-farm-view"]) document.getElementById(el).classList.add("hidden");
+
+  // field facts
+  set("field-area", Math.round(f.area_ha) + " ha");
+  set("field-slope", byofSlope().toFixed(1) + "°");
+  const bare = byofRegionalBareSoil();
+  set("field-bare", bare.current_corn != null ? bare.current_corn + " days (regional avg)" : "—");
+
+  renderCards();
+}
+
+/* ---------- wiring ----------------------------------------------------- */
+function initByof() {
+  // the cycle numbers quoted in the explanation come from the data, not a constant
+  const c = byofCycleStats();
+  const setTxt = (el, v) => { const n = document.getElementById(el); if (n) n.textContent = v; };
+  setTxt("byof-cycle-n", c.fallback ? "the" : c.n);
+  setTxt("byof-cycle-p50", c.p50);
+  setTxt("byof-cycle-p10", c.p10);
+  setTxt("byof-cycle-p90", c.p90);
+
+  const slopeDefault = byofRegionalSlope();
+  document.getElementById("byof-slope").value = slopeDefault;
+  document.getElementById("byof-slope").placeholder = slopeDefault;
+  document.getElementById("byof-slope-default").textContent = slopeDefault.toFixed(1) + "°";
+
+  document.getElementById("byof-file").onchange = e => {
+    byofHandleFile(e.target.files && e.target.files[0]);
+  };
+
+  const drop = document.getElementById("byof-drop");
+  const stop = e => { e.preventDefault(); e.stopPropagation(); };
+  for (const ev of ["dragenter", "dragover"]) drop.addEventListener(ev, e => {
+    stop(e);
+    drop.classList.add("border-indigo-500", "bg-indigo-50");
+  });
+  for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, e => {
+    stop(e);
+    drop.classList.remove("border-indigo-500", "bg-indigo-50");
+  });
+  drop.addEventListener("drop", e => {
+    const dt = e.dataTransfer;
+    if (!dt) return;
+    const files = dt.files;
+    if (!files || !files.length) {
+      byofShowError('Nothing arrived with that drop. Try the "Choose a file" button instead.');
+      return;
+    }
+    if (files.length > 1) {
+      byofShowError("You dropped " + files.length + " files. Drop one GeoJSON at a time.");
+      return;
+    }
+    byofHandleFile(files[0]);
+  });
+  // keep the page from navigating away when a file lands outside the dropzone
+  for (const ev of ["dragover", "drop"]) window.addEventListener(ev, e => {
+    if (!drop.contains(e.target)) e.preventDefault();
+  });
+
+  const reRender = () => { if (BYOF.active) byofRender(); };
+  document.getElementById("byof-sowing").onchange = reRender;
+  document.getElementById("byof-sowing").oninput = reRender;
+  document.getElementById("byof-slope").oninput = reRender;
+  document.getElementById("byof-back").onclick = byofDeactivate;
+}
+
 /* ------------------------------------------------ boot */
 (async function () {
   await loadData();
   initMap();
   initControls();
+  initByof();
   selectField(S.fieldId);
   lucide.createIcons();
 })();
