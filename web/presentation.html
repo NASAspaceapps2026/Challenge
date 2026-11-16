@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Shift | Project presentation</title>
+<meta name="description" content="Field Shift — project presentation (NASA Space Apps Challenge 2026).">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ctext y='13' font-size='13'%3E%F0%9F%8C%B1%3C/text%3E%3C/svg%3E">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    fontFamily: { sans: ['Inter', 'sans-serif'] },
+    colors: { agro: {
+      950:'#0a2216', 900:'#143d29', 800:'#1b5438', 700:'#236e49',
+      600:'#2e8b5c', 500:'#3da872', 100:'#e6f5ed', 50:'#f3faf6',
+    }}
+  }}
+}
+</script>
+</head>
+<body class="bg-slate-50 font-sans">
+
+<header class="bg-agro-950 text-white shadow-xl border-b border-agro-700/60">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="bg-emerald-500/25 p-2.5 rounded-xl border border-emerald-300/40">
+          <i data-lucide="presentation" class="w-7 h-7 text-emerald-300"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight">Field <span class="text-emerald-400">Shift</span></h1>
+            <span class="bg-emerald-500/25 text-emerald-200 border border-emerald-300/40 text-[11px] font-bold px-2.5 py-0.5 rounded-full">NASA Space Apps 2026</span>
+          </div>
+          <p class="text-xs text-emerald-50/90">Project presentation · 7 slides</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 text-xs">
+        <a href="index.html" class="flex items-center gap-1.5 bg-agro-950/55 px-3 py-1.5 rounded-xl border border-white/20 text-emerald-200 font-semibold hover:bg-agro-800/70">
+          <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to the tool
+        </a>
+        <a href="presentation/field-shift-deck.pdf" download class="flex items-center gap-1.5 bg-emerald-500 px-3 py-1.5 rounded-xl text-agro-950 font-bold hover:bg-emerald-400">
+          <i data-lucide="download" class="w-4 h-4"></i> Download PDF
+        </a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+  <section class="bg-white rounded-2xl shadow border border-slate-200 overflow-hidden">
+    <div class="px-5 py-3 border-b border-slate-200 flex items-center justify-between gap-3">
+      <h2 class="font-bold text-agro-900">Project deck (7 slides)</h2>
+      <a href="presentation/field-shift-deck.pdf" target="_blank" rel="noopener"
+         class="text-xs font-semibold text-agro-700 hover:underline">Open in a new tab ↗</a>
+    </div>
+    <div class="bg-slate-100">
+      <object data="presentation/field-shift-deck.pdf" type="application/pdf"
+              class="w-full h-[78vh] min-h-[420px]">
+        <iframe src="presentation/field-shift-deck.pdf" class="w-full h-[78vh] min-h-[420px]" title="Field Shift — project deck"></iframe>
+      </object>
+    </div>
+    <p class="px-5 py-3 text-xs text-slate-500">
+      If the viewer does not load on your phone,
+      <a href="presentation/field-shift-deck.pdf" class="text-agro-700 font-semibold hover:underline">download the PDF</a>.
+    </p>
+  </section>
+
+  <section class="bg-white rounded-2xl shadow border border-slate-200 p-5">
+    <h2 class="font-bold text-agro-900 mb-3">What is on each slide</h2>
+    <ol class="space-y-2 text-sm text-slate-700 list-decimal pl-5">
+      <li><strong>Field Shift</strong> — when the soybean comes off and what should follow it: a decision-support tool for soybean farmers in Mato Grosso, Brazil.</li>
+      <li><strong>The stakes</strong> — Brazil’s second crop depends on a rain window that closes within weeks of the soybean harvest.</li>
+      <li><strong>The answer</strong> — Field Shift dates each field’s harvest (P10/P50/P90), then ranks what can follow.</li>
+      <li><strong>Four succession strategies</strong> — corn, corn + brachiaria, sorghum/millet and crotalaria, compared on income, water risk, soil cover and pest cycles.</li>
+      <li><strong>Built for the Brazilian farm</strong> — harvest delay, ENSO scenario, farm priorities, cattle, corn contract and known pests.</li>
+      <li><strong>El Niño years and cattle change the ranking</strong> — and the tool shows by how much.</li>
+      <li><strong>The evidence</strong> — 4.5-day mean harvest-prediction error, 26 seasons of NASA rainfall, 4 NASA datasets, open source.</li>
+    </ol>
+  </section>
+
+  <section class="bg-agro-950 text-emerald-50 rounded-2xl p-5 text-sm">
+    <h2 class="font-bold text-white mb-2">Project links</h2>
+    <ul class="space-y-1">
+      <li>Live tool: <a class="text-emerald-300 hover:underline" href="index.html">nasaspaceapps2026.github.io/Challenge</a></li>
+      <li>Code: <a class="text-emerald-300 hover:underline" href="https://github.com/NASAspaceapps2026/Challenge" target="_blank" rel="noopener">github.com/NASAspaceapps2026/Challenge</a></li>
+    </ul>
+  </section>
+
+</main>
+
+<footer class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 text-xs text-slate-500">
+  Field Shift · NASA Space Apps Challenge 2026 · built on NASA POWER, MODIS, GPM IMERG and SRTM, with ESA Sentinel-2.
+</footer>
+
+<script>lucide.createIcons();</script>
+</body>
+</html>
